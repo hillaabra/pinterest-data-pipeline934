@@ -2,68 +2,99 @@ import requests
 from time import sleep
 import random
 from multiprocessing import Process
+import yaml
 import boto3
 import json
 import sqlalchemy
 from sqlalchemy import text
 
 
-random.seed(100)
+random.seed(100) # what is this for?
 
-
+# %%
 class AWSDBConnector:
 
-    def __init__(self):
+    def __init__(self, credentials_yaml):
 
-        self.HOST = "pinterestdbreadonly.cq2e8zno855e.eu-west-1.rds.amazonaws.com"
-        self.USER = 'project_user'
-        self.PASSWORD = ':t%;yCY3Yjg'
-        self.DATABASE = 'pinterest_data'
-        self.PORT = 3306
-        
+        with open(credentials_yaml, 'r') as stream:
+            dict_db_creds = yaml.safe_load(stream)
+
+        self.HOST = dict_db_creds["HOST"]
+        self.USER = dict_db_creds["USER"]
+        self.PASSWORD = dict_db_creds["PASSWORD"]
+        self.DATABASE = dict_db_creds["DATABASE"]
+        self.PORT = dict_db_creds["PORT"]
+
     def create_db_connector(self):
         engine = sqlalchemy.create_engine(f"mysql+pymysql://{self.USER}:{self.PASSWORD}@{self.HOST}:{self.PORT}/{self.DATABASE}?charset=utf8mb4")
         return engine
 
 
-new_connector = AWSDBConnector()
+# %%
+class DataSender:
+
+    def __init__(self, topic_name, source_table_name, datetime_column_name = None):
+        self.topic_name = topic_name
+        self.source_table_name = source_table_name
+        self.invoke_url = f"https://0ix5bu8bzd.execute-api.us-east-1.amazonaws.com/topics/{self.topic_name}"
+        self.datetime_column_name = datetime_column_name
+
+    def _make_record_dict_json_friendly(self, dict):
+        dict[self.datetime_column_name] = dict[self.datetime_column_name].strftime("%Y:%m:%d %H:%M:%S")
+        return dict
+
+    def _extract_random_record_from_aws_db(self, connection, random_row_number):
+        query_string = text(f"SELECT * FROM {self.source_table_name} LIMIT {random_row_number}, 1")
+        selected_row = connection.execute(query_string)
+        return selected_row
+
+    def _convert_sql_result_to_dict(self, selected_row):
+        for row in selected_row:
+            dict_for_json = dict(row._mapping)
+        if self.datetime_column_name is not None:
+            dict_for_json = self._make_record_dict_json_friendly(dict_for_json)
+        return dict_for_json
+
+    def _send_record_to_topic(self, dict_for_json):
+        payload = json.dumps({
+                "records": [
+                    {
+                        "value": dict_for_json
+                    }
+                ]
+            })
+
+        headers = {'Content-Type': 'application/vnd.kafka.json.v2+json'}
+        response = requests.request("POST", self.invoke_url, headers=headers, data=payload)
+        # TODO: Error handling
+        print(f"response.status_code for topic {self.topic_name}: ", response.status_code)
+
+    def send_random_record_to_topic(self, connection, random_row_number):
+        selected_row = self._extract_random_record_from_aws_db(connection, random_row_number)
+        dict_for_json = self._convert_sql_result_to_dict(selected_row)
+        self._send_record_to_topic(dict_for_json)
 
 
+# %%
+new_connector = AWSDBConnector("aws_db_config.yaml")
+pin_data_poster = DataSender("0a0223c10829.pin", "pinterest_data")
+geo_data_poster = DataSender("0a0223c10829.geo", "geolocation_data", "timestamp")
+user_data_poster = DataSender("0a0223c10829.user", "user_data", "date_joined")
+
+data_senders_by_topic = [pin_data_poster, geo_data_poster, user_data_poster]
+
+# %%
 def run_infinite_post_data_loop():
+    engine = new_connector.create_db_connector()
     while True:
         sleep(random.randrange(0, 2))
-        random_row = random.randint(0, 11000)
-        engine = new_connector.create_db_connector()
+        random_row_number = random.randint(0, 11000)
 
         with engine.connect() as connection:
-
-            pin_string = text(f"SELECT * FROM pinterest_data LIMIT {random_row}, 1")
-            pin_selected_row = connection.execute(pin_string)
-            
-            for row in pin_selected_row:
-                pin_result = dict(row._mapping)
-
-            geo_string = text(f"SELECT * FROM geolocation_data LIMIT {random_row}, 1")
-            geo_selected_row = connection.execute(geo_string)
-            
-            for row in geo_selected_row:
-                geo_result = dict(row._mapping)
-
-            user_string = text(f"SELECT * FROM user_data LIMIT {random_row}, 1")
-            user_selected_row = connection.execute(user_string)
-            
-            for row in user_selected_row:
-                user_result = dict(row._mapping)
-            
-            print(pin_result)
-            print(geo_result)
-            print(user_result)
+            for data_sender in data_senders_by_topic:
+                data_sender.send_random_record_to_topic(connection, random_row_number)
 
 
 if __name__ == "__main__":
     run_infinite_post_data_loop()
     print('Working')
-    
-    
-
-
