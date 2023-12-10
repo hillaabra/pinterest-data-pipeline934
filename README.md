@@ -35,3 +35,4 @@
 - The next stage was to use this custom plugin to create the connector.
   - I configured the settings to make sure that the connector would pick up data from all three Kafka topics I had previously created (using the `topics.regex` field), and that it would send and store all that data in the correct bucket, in the correect region I had configured the bucket.
   - I made sure to choose the same IAM role I had previously used for authentication on my EC2 client, which also contained all the necessary permissions to connect to MSK and MSK Connect.
+- I had to install PyMySQL for the AWSDBConnector class
