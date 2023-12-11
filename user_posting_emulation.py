@@ -74,7 +74,6 @@ class DataSender:
             })
 
         headers = {'Content-Type': 'application/vnd.kafka.json.v2+json'}
-        #response = requests.request("POST", self.invoke_url, headers=headers, data=payload)
         response = requests.post(url=self.invoke_url, headers=headers, data=payload)
         # TODO: Error handling
         print(f"response.status_code for topic {self.topic_name}: ", response.status_code)
