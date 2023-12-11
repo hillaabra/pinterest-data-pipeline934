@@ -9,8 +9,6 @@ import sqlalchemy
 from sqlalchemy import text
 
 
-random.seed(100) # what is this for?
-
 # %%
 class AWSDBConnector:
 
@@ -36,8 +34,19 @@ class DataSender:
     def __init__(self, topic_name, source_table_name, datetime_column_name = None):
         self.topic_name = topic_name
         self.source_table_name = source_table_name
-        self.invoke_url = f"https://0ix5bu8bzd.execute-api.us-east-1.amazonaws.com/topics/{self.topic_name}"
+        self.invoke_url = self._get_invoke_url()
         self.datetime_column_name = datetime_column_name
+
+    @staticmethod
+    def _load_dict_from_yaml(yaml_pathway):
+        with open(yaml_pathway, 'r') as stream:
+            dict = yaml.safe_load(stream)
+        return dict
+
+    def _get_invoke_url(self):
+        dict_from_user_cred = self._load_dict_from_yaml("user_config.yaml")
+        invoke_url = f"{dict_from_user_cred['api_gateway_invoke_url']}/topics/{self.topic_name}"
+        return invoke_url
 
     def _make_record_dict_json_friendly(self, dict):
         dict[self.datetime_column_name] = dict[self.datetime_column_name].strftime("%Y:%m:%d %H:%M:%S")
@@ -65,7 +74,8 @@ class DataSender:
             })
 
         headers = {'Content-Type': 'application/vnd.kafka.json.v2+json'}
-        response = requests.request("POST", self.invoke_url, headers=headers, data=payload)
+        #response = requests.request("POST", self.invoke_url, headers=headers, data=payload)
+        response = requests.post(url=self.invoke_url, headers=headers, data=payload)
         # TODO: Error handling
         print(f"response.status_code for topic {self.topic_name}: ", response.status_code)
 
@@ -83,13 +93,13 @@ user_data_poster = DataSender("0a0223c10829.user", "user_data", "date_joined")
 
 data_senders_by_topic = [pin_data_poster, geo_data_poster, user_data_poster]
 
+random.seed(100)
 # %%
 def run_infinite_post_data_loop():
     engine = new_connector.create_db_connector()
     while True:
         sleep(random.randrange(0, 2))
         random_row_number = random.randint(0, 11000)
-
         with engine.connect() as connection:
             for data_sender in data_senders_by_topic:
                 data_sender.send_random_record_to_topic(connection, random_row_number)
