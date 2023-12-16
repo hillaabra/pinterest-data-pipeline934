@@ -16,17 +16,15 @@ user_data = BatchDataGenerator("0a0223c10829.user", "user_data", "date_joined")
 data_generators_by_topic = [pin_data, geo_data, user_data]
 
 random.seed(100)
-# %%
+
 def run_infinite_post_data_loop():
     engine = new_connector.create_db_connector()
     while True:
         sleep(random.randrange(0, 2))
         random_row_number = random.randint(0, 11000)
         with engine.connect() as connection:
-            for data_sender in data_generators_by_topic:
-                data_sender.send_random_record_to_topic(connection, random_row_number)
-
+            for data_generator in data_generators_by_topic:
+                data_generator.send_random_record_to_topic(connection, random_row_number)
 
 if __name__ == "__main__":
     run_infinite_post_data_loop()
-    print('Working')
