@@ -1,3 +1,4 @@
 *.pem
 aws_db_config.yaml
 user_config.yaml
+__pycache__/
