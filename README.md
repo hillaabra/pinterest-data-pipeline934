@@ -33,7 +33,7 @@
 2. Connecting the MSK cluster to a dedicated S3 bucket
 - Next, within the MSK console, I created an MSK connector that would automatically send any data from Kafka topics going through the MSK cluster to an S3 bucket that had already been created for me:
   - An IAM role had already been written for me allowing me to write to the destination bucket, as well as a VPC endpoint to S3.
-  - So the first thing I had to was to download the Confluent.io Amazon S3 Connector to the client EC2 machine I had initialised earlier, and then from the command line, I copied this sink connector to my designated S3 bucket.
+  - So the first thing I had to do was to download the Confluent.io Amazon S3 Connector to the client EC2 machine I had initialised earlier, and then from the command line, I copied this sink connector to my designated S3 bucket.
   - I was then able to create a custom plugin in the MSK console containing the code to define the logic of the sink connector, using this S3 connector object.
 - The next stage was to use this custom plugin to create the connector.
   - I configured the settings to make sure that the connector would pick up data from all three Kafka topics I had previously created (using the `topics.regex` field), and that it would send and store all that data in the correct bucket, in the correct region I had configured the bucket.
@@ -50,6 +50,16 @@
 - Within a Notebook in Databricks, I mounted my designated S3 bucket which had received 2700 json records to Databricks.
 - I read each topic grouping of JSON files to a Spark dataframe.
 5. Spark on Databricks
+- Within the Notebook in DataBricks, I wrote a class of methods to connect to S3, and a class of methods to process the batches of data by topic.
+- I wrote custom methods to clean the data for each dataset, which could be passed into the data cleaning class method
+- I cleaned the data, and ran sql queries on them by creating temporary tables views of the dataframes within the spark session native to the Spark cluster.
+- I learnt how to run notebooks inside of notebooks in databricks
+- version control?
 6. AWS MWAA
 ### Stream Processing
 1. AWS Kinesis
+
+
+## [Licence](#licence)
+
+This project was supervised and is owned by [AiCore](https://www.theaicore.com/), a specialist AI & Data career accelerator whose focus is on building experience through real-world, industry-grade projects and applications.
