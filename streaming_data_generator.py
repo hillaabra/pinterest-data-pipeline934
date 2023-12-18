@@ -26,10 +26,10 @@ class StreamingDataGenerator(DataGenerator):
         headers = {'Content-Type': 'application/json'}
 
         response = requests.put(url=self.invoke_url, headers=headers, data=payload)
-        # TODO: Error handling
-        print(f"response.status_code for stream {self.stream_name}: ", response.status_code)
+        return response.status_code
 
     def send_random_record_to_stream(self, connection, random_row_number):
         selected_row = self._extract_random_record_from_aws_db(connection, random_row_number)
         dict_for_json = self._convert_sql_result_to_dict(selected_row)
-        self._send_record_to_stream(dict_for_json)
+        http_response_status_code = self._send_record_to_stream(dict_for_json)
+        return http_response_status_code
