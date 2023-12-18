@@ -1,8 +1,5 @@
 from time import sleep
 import random
-from multiprocessing import Process # not used?
-
-import boto3 # not used?
 
 from aws_db_connector import AWSDBConnector
 from batch_data_generator import BatchDataGenerator
@@ -24,7 +21,12 @@ def run_infinite_post_data_loop():
         random_row_number = random.randint(0, 11000)
         with engine.connect() as connection:
             for data_generator in data_generators_by_topic:
-                data_generator.send_random_record_to_topic(connection, random_row_number)
+                http_response_status_code = data_generator.send_random_record_to_topic(connection, random_row_number)
+                if http_response_status_code != 200:
+                    print(f"Data generation interrupted due to response.status_code when sending data to {data_generator.topic_name} topic: {http_response_status_code}")
+                    break
+                else:
+                    print(f"Data sent to {data_generator.topic_name} topic...")
 
 if __name__ == "__main__":
     run_infinite_post_data_loop()
