@@ -23,7 +23,12 @@ def run_infinite_post_data_to_kinesis_loop():
         random_row_number = random.randint(0, 11000)
         with engine.connect() as connection:
             for data_generator in data_generators_by_stream:
-                data_generator.send_random_record_to_stream(connection, random_row_number)
+                http_response_status_code = data_generator.send_random_record_to_stream(connection, random_row_number)
+                if http_response_status_code != 200:
+                    print(f"Stream interrupted due to response.status_code for stream {data_generator.stream_name}: {http_response_status_code}")
+                    break
+                else:
+                    print(f"Data sent to {data_generator.stream_name} stream...")
 
 if __name__ == "__main__":
     run_infinite_post_data_to_kinesis_loop()
