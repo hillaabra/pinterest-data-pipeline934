@@ -1,11 +1,11 @@
 from time import sleep
 import random
 
-from aws_db_connector import AWSDBConnector
-from batch_data_generator import BatchDataGenerator
+from posting_emulation_utils.aws_db_connector import AWSDBConnector
+from posting_emulation_utils.batch_data_generator import BatchDataGenerator
 
 
-new_connector = AWSDBConnector("aws_db_config.yaml")
+new_connector = AWSDBConnector("posting_emulation_utils/aws_db_config.yaml")
 pin_data = BatchDataGenerator("0a0223c10829.pin", "pinterest_data")
 geo_data = BatchDataGenerator("0a0223c10829.geo", "geolocation_data", "timestamp")
 user_data = BatchDataGenerator("0a0223c10829.user", "user_data", "date_joined")

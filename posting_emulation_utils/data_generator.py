@@ -17,7 +17,7 @@ class DataGenerator(ABC):
         return dict
 
     def _get_api_invoke_url(self):
-        dict_from_api_cred = self._load_dict_from_yaml("api_gateway_config.yaml")
+        dict_from_api_cred = self._load_dict_from_yaml("posting_emulation_utils/api_gateway_config.yaml")
         invoke_url = dict_from_api_cred["api_gateway_invoke_url"]
         return invoke_url
 

@@ -3,11 +3,11 @@
 import random
 from time import sleep
 
-from aws_db_connector import AWSDBConnector
-from streaming_data_generator import StreamingDataGenerator
+from posting_emulation_utils.aws_db_connector import AWSDBConnector
+from posting_emulation_utils.streaming_data_generator import StreamingDataGenerator
 
 
-new_connector = AWSDBConnector("aws_db_config.yaml")
+new_connector = AWSDBConnector("posting_emulation_utils/aws_db_config.yaml")
 pin_data = StreamingDataGenerator("streaming-0a0223c10829-pin", "pinterest_data")
 geo_data = StreamingDataGenerator("streaming-0a0223c10829-geo", "geolocation_data", "timestamp")
 user_data = StreamingDataGenerator("streaming-0a0223c10829-user", "user_data", "date_joined")

@@ -1,7 +1,7 @@
 import json
 import requests
 
-from data_generator import DataGenerator
+from .data_generator import DataGenerator
 
 
 class StreamingDataGenerator(DataGenerator):
