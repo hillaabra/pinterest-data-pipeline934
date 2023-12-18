@@ -10,10 +10,10 @@ class StreamingDataGenerator(DataGenerator):
         self.stream_name = stream_name
         super().__init__(source_table_name, datetime_column_name)
 
-    def _get_invoke_url(self):
-        dict_from_user_cred = self._load_dict_from_yaml("user_config.yaml")
-        invoke_url = f"{dict_from_user_cred['api_gateway_streaming_invoke_url']}/streams/{self.stream_name}/record"
-        return invoke_url
+    def _set_request_url(self):
+        invoke_url = self._get_api_invoke_url()
+        request_url = f"{invoke_url}/streams/{self.stream_name}/record"
+        return request_url
 
     def _send_record_to_stream(self, dict_for_json):
 
@@ -25,7 +25,7 @@ class StreamingDataGenerator(DataGenerator):
 
         headers = {'Content-Type': 'application/json'}
 
-        response = requests.put(url=self.invoke_url, headers=headers, data=payload)
+        response = requests.put(url=self.api_request_url, headers=headers, data=payload)
         return response.status_code
 
     def send_random_record_to_stream(self, connection, random_row_number):

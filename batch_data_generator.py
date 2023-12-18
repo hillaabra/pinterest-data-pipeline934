@@ -10,10 +10,10 @@ class BatchDataGenerator(DataGenerator):
         self.topic_name = topic_name
         super().__init__(source_table_name, datetime_column_name)
 
-    def _get_invoke_url(self):
-        dict_from_user_cred = self._load_dict_from_yaml("user_config.yaml")
-        invoke_url = f"{dict_from_user_cred['api_gateway_invoke_url']}/topics/{self.topic_name}"
-        return invoke_url
+    def _set_request_url(self):
+        invoke_url = self._get_api_invoke_url()
+        request_url = f"{invoke_url}/topics/{self.topic_name}"
+        return request_url
 
     def _send_record_to_topic(self, dict_for_json):
         payload = json.dumps({
@@ -25,7 +25,7 @@ class BatchDataGenerator(DataGenerator):
             })
 
         headers = {'Content-Type': 'application/vnd.kafka.json.v2+json'}
-        response = requests.post(url=self.invoke_url, headers=headers, data=payload)
+        response = requests.post(url=self.api_request_url, headers=headers, data=payload)
         return response.status_code
 
     def send_random_record_to_topic(self, connection, random_row_number):
