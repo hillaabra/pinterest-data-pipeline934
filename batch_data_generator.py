@@ -26,10 +26,10 @@ class BatchDataGenerator(DataGenerator):
 
         headers = {'Content-Type': 'application/vnd.kafka.json.v2+json'}
         response = requests.post(url=self.invoke_url, headers=headers, data=payload)
-        # TODO: Error handling
-        print(f"response.status_code for topic {self.topic_name}: ", response.status_code)
+        return response.status_code
 
     def send_random_record_to_topic(self, connection, random_row_number):
         selected_row = self._extract_random_record_from_aws_db(connection, random_row_number)
         dict_for_json = self._convert_sql_result_to_dict(selected_row)
-        self._send_record_to_topic(dict_for_json)
+        http_reponse_status_code = self._send_record_to_topic(dict_for_json)
+        return http_reponse_status_code
