@@ -1,16 +1,16 @@
-from time import sleep
 import random
+from time import sleep
 
 from posting_emulation_utils.aws_db_connector import AWSDBConnector
-from posting_emulation_utils.batch_data_generator import BatchDataGenerator
+from posting_emulation_utils.multiprocess_data_sender import MultiprocessDataSender
 
 
 new_connector = AWSDBConnector("posting_emulation_utils/aws_db_config.yaml")
-pin_data = BatchDataGenerator("0a0223c10829.pin", "pinterest_data")
-geo_data = BatchDataGenerator("0a0223c10829.geo", "geolocation_data", "timestamp")
-user_data = BatchDataGenerator("0a0223c10829.user", "user_data", "date_joined")
+pin_data = MultiprocessDataSender("0a0223c10829.pin", "streaming-0a0223c10829-pin", "pinterest_data")
+geo_data = MultiprocessDataSender("0a0223c10829.geo", "streaming-0a0223c10829-geo", "geolocation_data", "timestamp")
+user_data = MultiprocessDataSender("0a0223c10829.user", "streaming-0a0223c10829-user", "user_data", "date_joined")
 
-data_generators_by_topic = [pin_data, geo_data, user_data]
+data_senders = [pin_data, geo_data, user_data]
 
 random.seed(100)
 
@@ -20,13 +20,9 @@ def run_infinite_post_data_loop():
         sleep(random.randrange(0, 2))
         random_row_number = random.randint(0, 11000)
         with engine.connect() as connection:
-            for data_generator in data_generators_by_topic:
-                http_response_status_code = data_generator.send_random_record_to_topic(connection, random_row_number)
-                if http_response_status_code != 200:
-                    print(f"Data generation interrupted due to response.status_code when sending data to {data_generator.topic_name} topic: {http_response_status_code}")
-                    break
-                else:
-                    print(f"Data sent to {data_generator.topic_name} topic...")
+            for data_sender in data_senders:
+                data_sender.post_random_record_to_batch_and_stream_layers(connection, random_row_number)
+
 
 if __name__ == "__main__":
     run_infinite_post_data_loop()
