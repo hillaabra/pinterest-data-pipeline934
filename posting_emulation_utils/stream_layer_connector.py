@@ -31,3 +31,5 @@ class StreamLayerConnector(DataGenerator):
             print(f"Record successfully sent to stream {self.stream_name}")
         else:
             print(f"response.status_code for stream {self.stream_name}: {response.status_code}")
+        # if response.status_code != 200:
+        #     print(f"response.status_code for stream {self.stream_name}: {response.status_code}")

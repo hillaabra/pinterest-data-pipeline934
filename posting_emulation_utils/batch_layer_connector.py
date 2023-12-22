@@ -31,3 +31,5 @@ class BatchLayerConnector(DataGenerator):
             print(f"Record successfully sent to topic {self.topic_name}")
         else:
             print(f"response.status_code for topic {self.topic_name}: {response.status_code}")
+        # if response.status_code != 200:
+        #     print(f"response.status_code for topic {self.topic_name}: {response.status_code}")
