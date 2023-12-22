@@ -30,14 +30,14 @@
 
 ## [Project Overview](#project-overview)
 
-To mimic the creation of real-time user data from Pinterest, I wrote scripts that extract rows of data at random from three tables within an AWS RDS database. These randomly extracted datapoints are sent as JSON objects via an API (which I developed on AWS API Gateway) into their respective processing layers within the pipeline.
+To mimic the creation of real-time user data from Pinterest, I wrote a Python program that extracts rows of data at random from three tables within an AWS RDS database. Using multiprocessing, each randomly extracted datapoint is sent as a JSON object into two distinct processing layers of the pipeline via the two resources of an API I developed on AWS API Gateway.
 
 The pipeline is developed using a Lambda architecture.
 
 For the **Batch Layer**:
 - The data is ingested, in relation to three Kafka topics, via a REST proxy-integrated API connecting the Kafka Client launched on an EC2 instance with an MSK cluster on AWS.
 - I created a sink connector within MSK Connect that directs the incoming data to its target topic folder within an S3 bucket.
-- The data is processed within Databricks using Apache Spark: within Databricks, the data from each topic is read into Spark DataFrames and cleaned before being queried using SQL.
+- The data is processed within Databricks using Apache Spark: the data from each topic is read into Spark DataFrames and cleaned before being queried using SQL.
 - Extracting comprehensive insights from the so-called historical data of the batch layer, the SQL queries generate daily, precomputed batch views written to Parquet tables within Databricks, ready for ingestion to a **Serving Layer**.
 - The job is orchestrated from the Apache Airflow UI on an AWS MWAA environment using a DAG which currently schedules the batch layer pipeline to be run once daily at midnight.
 
@@ -45,6 +45,8 @@ For the **Speed Layer** (or **Stream Layer**):
 - The data is ingested, as three streams, using AWS API Gateway into AWS Kinesis.
 - The data is read in near-real-time from Kinesis into DataFrames using Spark Structured Streaming within Databricks.
 - After cleaning, the data is written into Databricks Delta Tables for long-term storage.
+
+(The next stage of development for this pipeline would be to develop the **Server Layer** of the architecture, where the outputs of the batch and stream layers could be merged to allow for both historical and real-time data analysis.)
 
 The same **data cleaning transformations** are performed on the corresponding datasets across the two layers. These include:
 - Reordering, renaming, combining and/or dropping columns for better data comprehension
@@ -55,16 +57,16 @@ The same **data cleaning transformations** are performed on the corresponding da
 
 ## [Installation](#installation)
 
-This project relies on access to an RDS database on AWS storing data across three tables which resemble the data generated each time a user posts something on Pinterest. The scripts I wrote extract rows of data at random from this database to emulate the creation of real-time user data, each of which sends this data to an API which directs this data into the data pipelines.
+This project relies on access to an RDS database on AWS storing data across three tables which resemble the data generated each time a user posts something on Pinterest. The script I wrote extracts rows of data at random from this database to emulate the creation of real-time user data, and submits this data to the two processing layers of the pipeline via an API.
 
-The data emulation and ingestion into the Cloud requires the following packages installed on the user's local machine or IDE:
+The data emulation and ingestion into the AWS-hosted pipeline requires the following packages installed on the user's local machine or IDE:
 
 - Python 3+
 - PyMySQL (if connecting to a MySQL database, as we are here)
 - SQLAlchemy
 - PyYAML
 
-In terms of AWS cloud infrastucture, the pipeline is made up of the following components:
+In terms of cloud-based infrastucture, the pipeline is made up of the following components:
 - An Apache Kafka MSK cluster
 - An EC2 instance integrated with the MSK cluster (launched before configuring the API)
 - An S3 bucket to store the ingestion of batch layer data
@@ -123,21 +125,19 @@ Back on the AWS console, the user will need to:
 ```
 ./kafka-rest-start /home/ec2-user/confluent-7.2.0/etc/kafka-rest/kafka-rest.properties
 ```
-- In one terminal shell, to start generating and sending data to the Kafka topics, to be fed into the batch layer, run:
+- From a terminal window in the repository, start generating and sending data into the pipeline by running:
 ```
-python -m user_posting_emulation
+python user_posting_emulation.py # or python -m user_posting_emulation ?
 ```
-- To send data to the Kinesis streams, run:
-```
-python -m user_posting_emulation_streaming
-```
-- Monitor the progress of the batch layer pipeline through the Apache Airflow UI on AWS MWAA.
+- I've not yet worked out how to gracefully terminate the process - for now `CTRL C`.
+- Show gifs of data being sent succesfully?
 - Within Databricks, manually trigger the stream-processing layer by running the code blocks sequentially in `stream_pipeline.ipynb`
+- The batch layer pipeline can be monitored through the Apache Airflow UI on AWS MWAA.
 
 ## [File Structure](#file-structure)
 
 The files available in this repository represent:
-- those that make up the data generation/posting emulation from my local machine
+- those that make up the data generation/posting emulation program from my local machine
 - the Databricks Workspace
 - the `dags/` repository in the S3 bucket within the MWAA environment on AWS
 
@@ -204,10 +204,6 @@ To emulate the data generated by Pinterest, this project relies on access to an 
 - Data about the user that interacted with the post (aka the `user` table)
 - Data about the geolocation of the user-post interaction (aka the `geo` table)
 
-
-## [Next Steps](#next-steps)
-
-The next stage of development for this pipeline would be to develop the **Server Layer** of the architecture, where the outputs of the batch and stream layers could be merged to allow for both historical and real-time data analysis. (To provide a faithful implementation of this, I would need to first amend the posting emulation scripts to generate the same datapoints concurrently for input to the pipeline.)
 
 ## [Licence](#licence)
 
