@@ -12,9 +12,11 @@
 
 **The pipeline is built to be able to crunch billions of datapoints per day in order to run thousands of experiments daily.**
 
-**As well as providing me with experience in setting up and implementing complex Cloud infrastructure, working with stream- and batch- processing methods in Databricks and job-orchestration using Airflow, this project helped to familiarise me with Lambda architecture as a powerful framework for the efficient processing of big data.**
+**As well as consolidating my experience in setting up and implementing complex Cloud infrastructure, working with stream- and batch- processing methods in Databricks and job-orchestration using Airflow, this project helped me to get familiar with Lambda architecture as a powerful framework for the efficient processing of big data.**
 
-**By leveraging the benefits of batch-processing for resource-intensive queries on historical data and the speed of stream-processing for low-intensity, low-latency production of real-time views, this hybrid deployment model offers an agile, efficient and high-fault-tolerant data-processing stack that enables consistent and targeted evaluation of Pinterest's product on an ongoing basis.**
+**By leveraging the benefits of batch-processing for resource-intensive queries on historical data and the speed of stream-processing for low-intensity, low-latency production of real-time views, this hybrid deployment model offers an agile, efficient and high-fault-tolerant data-processing stack for the handling and storing of high-volume user-generated data.**
+
+**The result is a robust pipeline that can facilitate consistent and targeted evaluation of Pinterest's product on an ongoing basis.**
 
 ## Table of Contents
 * [Project Overview](#project-overview)
