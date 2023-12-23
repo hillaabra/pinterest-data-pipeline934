@@ -27,9 +27,9 @@ class BatchLayerConnector(DataGenerator):
 
         headers = {'Content-Type': 'application/vnd.kafka.json.v2+json'}
         response = requests.post(url=self.api_batch_request_url, headers=headers, data=payload)
-        if response.status_code == 200:
-            print(f"Record successfully sent to topic {self.topic_name}")
-        else:
-            print(f"response.status_code for topic {self.topic_name}: {response.status_code}")
-        # if response.status_code != 200:
+        # if response.status_code == 200:
+        #     print(f"Record successfully sent to topic {self.topic_name}")
+        # else:
         #     print(f"response.status_code for topic {self.topic_name}: {response.status_code}")
+        if response.status_code != 200:
+            print(f"response.status_code for topic {self.topic_name}: {response.status_code}")

@@ -27,9 +27,9 @@ class StreamLayerConnector(DataGenerator):
         headers = {'Content-Type': 'application/json'}
 
         response = requests.put(url=self.api_stream_request_url, headers=headers, data=payload)
-        if response.status_code == 200:
-            print(f"Record successfully sent to stream {self.stream_name}")
-        else:
-            print(f"response.status_code for stream {self.stream_name}: {response.status_code}")
-        # if response.status_code != 200:
+        # if response.status_code == 200:
+        #     print(f"Record successfully sent to stream {self.stream_name}")
+        # else:
         #     print(f"response.status_code for stream {self.stream_name}: {response.status_code}")
+        if response.status_code != 200:
+            print(f"response.status_code for stream {self.stream_name}: {response.status_code}")

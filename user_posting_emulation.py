@@ -21,10 +21,10 @@ def worker(data_sender, stop_event, random_number_generator):
             random_row_number = random_number_generator.randint(0, 11000)
 
             with engine.connect() as connection:
-                dict_for_json = data_sender.produce_data_dict_for_request_payload(connection, random_row_number)
+                dict_for_api_request = data_sender.produce_data_dict_for_request_payload(connection, random_row_number)
 
-            pool.submit(data_sender.post_record_to_stream_layer, dict_for_json)
-            pool.submit(data_sender.post_record_to_batch_layer, dict_for_json)
+            pool.submit(data_sender.post_record_to_stream_layer, dict_for_api_request)
+            pool.submit(data_sender.post_record_to_batch_layer, dict_for_api_request)
 
             sleep(random_number_generator.randrange(0, 2))
 
