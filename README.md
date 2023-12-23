@@ -20,30 +20,37 @@
 
 ## Table of Contents
 * [Project Overview](#project-overview)
+    * [Pipeline Infrastructure](#infrastucture-diagram)
 * [Installation](#installation)
 * [File Structure](#file-structure)
     * [Local Machine](#local-machine)
     * [EC2 Client Machine](#ec2-client-machine)
     * [Databricks Workspace](#databricks-workspace)
-    * [AWS MWAA Environment](#aws-mwaa-environment)
+    * [AWS S3 Buckets](#s3-buckets)
 * [Usage](#usage)
 * [Next Steps](#next-steps)
 * [Licence](#licence)
 
 ## [Project Overview](#project-overview)
 
-To mimic the creation of real-time user data from Pinterest, I wrote a Python program that extracts a set of data at random from three tables in an AWS RDS database every 0-2 seconds. The three datasets are linked by index number: each set of three rows with the same index number represent three collections of data relating to one Pinterest user event:
+To mimic the creation of real-time user data from Pinterest, I wrote a Python program that extracts a set of data at random, every 0-2 seconds, from three tables in an AWS RDS database storing historic Pinterest data. The three datasets are linked by index number: each set of three rows with the same index number represent three collections of data relating to one Pinterest user event:
 - the data about the Pinterest post itself;
 - the data about the user;
 - and the geolocation data.
 
+### The datasets in their original form in the AWS database:
+
+![ERD database tables](images/db-erd.png)
+
 The data is sent into two distinct layers of the experiment pipeline (one for batch processing and one for stream processing) via the two resources of an API I developed on AWS API Gateway.
 
-Although the tasks are largely I/O-bound for this part of the pipeline, I opted for a multiprocessing approach to run the program extracting and sending datapoints relating to each of the three datasets in parallel. This probably would not translate to the real-world use-case but it was in this case of benefit, since I could take advantage of being able to pass a shared random number generator to each of the processes - ensuring the three rows of data being extracted and sent on each CPU for each dataset at each time were related to the same event and produced on the same timeline.
+Although the tasks are largely I/O-bound for this part of the pipeline, I opted for a multiprocessing approach to run the program extracting and sending datapoints relating to each of the three datasets in parallel. This probably wouldn't translate to the real-world use-case but it was in this case of benefit, since I could take advantage of being able to pass a shared random number generator to each of the processes - ensuring the three rows of data being extracted for each dataset at each time were related to the same event and produced on the same timeline.
 
 Since for each unique data-sending event, two API requests had to be made, I workshopped and researched a few different implementations of multithreading here with a view to optimising throughput and overhead usage. In the end, I implemented this using a ThreadPoolExecutor context that is kept open for the duration of the data sending process.
 
 The pipeline is developed using a Lambda architecture.
+
+![](images/lambda-architecture.png)
 
 For the **Batch Layer**:
 - The data is ingested, in relation to three Kafka topics, via a REST proxy-integrated API connecting the Kafka Client launched on an EC2 instance with an MSK cluster on AWS.
@@ -63,6 +70,8 @@ The same **data cleaning transformations** are performed on the corresponding da
 - Reordering, renaming, combining and/or dropping columns for better data comprehension
 - Type-casting columns where necessary
 - Data normalisation, including replacing missing or unmeaningful values with `None`
+
+### [Pipeline Infrastructure](#infrastructure-diagram)
 
 ![pipeline-cloud-infrastructure](images/cloud-pipeline-infrastructure.png)
 
@@ -133,16 +142,15 @@ Back on the AWS console, the user will need to:
 - Make sure the API on API Gateway is deployed and the correct invoke URL has been passed into the `api_gateway_config.yaml` file on your local machine
 - From your EC2 instance, start the REST proxy by first navigating to `confluent-7.2.0/bin` then running:
 ```
-./kafka-rest-start /home/ec2-user/confluent-7.2.0/etc/kafka-rest/kafka-rest.properties
+$ ./kafka-rest-start /home/ec2-user/confluent-7.2.0/etc/kafka-rest/kafka-rest.properties
 ```
 - From a terminal window in the repository, start generating and sending data into the pipeline by running:
 ```
-python user_posting_emulation.py # or python -m user_posting_emulation ?
+$ python user_posting_emulation.py
 ```
-- I've not yet worked out how to gracefully terminate the process - for now `CTRL C`.
-- Show gifs of data being sent succesfully?
+- Press enter at any time in the terminal to stop the data generation and posting and bring the user_posting_emulation script to a close.
 - Within Databricks, manually trigger the stream-processing layer by running the code blocks sequentially in `stream_pipeline.ipynb`
-- The batch layer pipeline can be monitored through the Apache Airflow UI on AWS MWAA.
+- The batch layer pipeline can be monitored through the Apache Airflow UI on AWS MWAA, or it can also be manually triggered for testing by running the code blocks in the `batch_processing_pipeline.ipynb` notebook.
 
 ## [File Structure](#file-structure)
 
@@ -153,61 +161,15 @@ The files available in this repository represent:
 
 ### [Local Machine](#local-machine)
 
-> Note the hidden files, also listed above in [Installation](#installation)
-
 ![Carbon code block representing local machine file structure](images/carbon-local-machine.png)
 
 ### [Databricks Workspace](#databricks-workspace)
 ![A code block representing the file structure of the databricks workspace](images/carbon-databricks.png)
 
-- `batch_processing_pipeline.ipynb` conducts the processing of the batch layer data read from S3:
-    - If not already mounted, the script mounts the S3 bucket to Databricks
-    - It reads the JSON objects in S3 into a Spark dataframe for each topic
-    - It cleans the data in the Spark dataframe (replacing erroneous or missing values with `None`s, data normalisation, type casting, dropping or creating new columns)
-    - It then conducts a series of SQL queries on the cleaned datasets, which are stored to dataframes
-    - In the next step for this project, these batch views would be output to a serving layer
-- `utils`
+### [AWS S3 Buckets](#s3-buckets)
+![A code block representing the file structures of the S3 buckets on AWS](images/carbon-s3.png)
 
-
-```
-
-# S3
-'-- user-<UserId>-bucket/
-
-
-|-- dags/
-    |-- 0a3db223d459_dag.py
-
-
-```
-S3 after downloading Confluent.io Amazon S3 Connector and copying it to s3 bucket via the EC2 instance
-```
-|-- user-<UserId>-bucket/
-    |-- kafka-connect-s3/
-        '-- confluentinc-kafka-connect-s3-10.0.3.zip
-    '-- topics/
-```
-S3 after data REST proxy is activated and data is sent
-```
-|-- user-<UserId>-bucket/
-    |-- kafka-connect-s3/
-        '-- confluentinc-kafka-connect-s3-10.0.3.zip
-    '-- topics/
-          |-- <UserId>.geo/
-              '-- partition=0/
-                  |-- JSON OBJECTS
-                  '-- ...
-          |-- <UserId>.pin/
-              '-- partition=0/
-                  |-- JSON OBJECTS
-                  '-- ...
-          '-- <UserId>.user/
-              '-- partition=0/
-                  |-- JSON OBJECTS
-                  '-- ...
-```
-
-## Usage
+## [Usage](#usage)
 
 To emulate the data generated by Pinterest, this project relies on access to an RDS database on AWS storing data across three tables which resemble the data generated each time a user posts something on Pinterest. The three datasets represent:
 - Data relating to the Pinterest post itself (aka the `pin` table)
