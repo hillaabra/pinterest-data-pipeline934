@@ -3,7 +3,7 @@
 *Data Engineering Project - [AiCore](https://www.theaicore.com/) (December 2023)*
 
 
-![Static Badge](https://img.shields.io/badge/Skills%20%26%20Knowledge-A8B78B) ![Static Badge](https://img.shields.io/badge/Big%20data%20storage%20and%20analytics-8A2BE2) ![Static Badge](https://img.shields.io/badge/Data%20ingestion-8A2BE2) ![Static Badge](https://img.shields.io/badge/Data%20governance%20and%20quality-8A2BE2) ![Static Badge](https://img.shields.io/badge/ETL%20pipeline-8A2BE2) ![Static Badge](https://img.shields.io/badge/Stream%20processing-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20cloud-8A2BE2) ![Static Badge](https://img.shields.io/badge/Batch%20processing-8A2BE2) ![Static Badge](https://img.shields.io/badge/API%20development-8A2BE2) ![Static Badge](https://img.shields.io/badge/REST%20proxy%20integration-8A2BE2) ![Static Badge](https://img.shields.io/badge/Lambda%20architecture-8A2BE2) ![Static Badge](https://img.shields.io/badge/Serverless%20computing-8A2BE2) ![Static Badge](https://img.shields.io/badge/Object%20oriented%20programming-8A2BE2) ![Static Badge](https://img.shields.io/badge/Multiprocessing-8A2BE2) ![Static Badge](https://img.shields.io/badge/Least%20privilege%20permissions-8A2BE2) ![Static Badge](https://img.shields.io/badge/Virtual%20Machines-8A2BE2)
+![Static Badge](https://img.shields.io/badge/Skills%20%26%20Knowledge-A8B78B) ![Static Badge](https://img.shields.io/badge/Big%20data%20storage%20and%20analytics-8A2BE2) ![Static Badge](https://img.shields.io/badge/Data%20ingestion-8A2BE2) ![Static Badge](https://img.shields.io/badge/Data%20governance%20and%20quality-8A2BE2) ![Static Badge](https://img.shields.io/badge/ETL%20pipeline-8A2BE2) ![Static Badge](https://img.shields.io/badge/Stream%20processing-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20cloud-8A2BE2) ![Static Badge](https://img.shields.io/badge/Batch%20processing-8A2BE2) ![Static Badge](https://img.shields.io/badge/API%20development-8A2BE2) ![Static Badge](https://img.shields.io/badge/REST%20proxy%20integration-8A2BE2) ![Static Badge](https://img.shields.io/badge/Lambda%20architecture-8A2BE2) ![Static Badge](https://img.shields.io/badge/Serverless%20computing-8A2BE2) ![Static Badge](https://img.shields.io/badge/Object%20oriented%20programming-8A2BE2) ![Static Badge](https://img.shields.io/badge/Multiprocessing%20and%20multithreading-8A2BE2) ![Static Badge](https://img.shields.io/badge/Least%20privilege%20permissions-8A2BE2) ![Static Badge](https://img.shields.io/badge/Virtual%20Machines-8A2BE2)
 
 ![Static Badge](https://img.shields.io/badge/Languages,%20Tools%20%26%20Libraries-A8B78B)  ![Static Badge](https://img.shields.io/badge/Python-8A2BE2) ![Static Badge](https://img.shields.io/badge/SQL-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20MSK-8A2BE2) ![Static Badge](https://img.shields.io/badge/Amazon%20EC2-8A2BE2) ![Static Badge](https://img.shields.io/badge/Apache%20Kafka-8A2BE2) ![Static Badge](https://img.shields.io/badge/Apache%20Spark-8A2BE2) ![Static Badge](https://img.shields.io/badge/Apache%20Airflow-8A2BE2) ![Static Badge](https://img.shields.io/badge/Databricks-8A2BE2) ![Static Badge](https://img.shields.io/badge/MWAA-8A2BE2) ![Static Badge](https://img.shields.io/badge/IAM%20role%20management-8A2BE2) ![Static Badge](https://img.shields.io/badge/IAM%20MSK%20Authentication-8A2BE2) ![Static Badge](https://img.shields.io/badge/MSK%20Connect-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20Kinesis-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20S3-8A2BE2) ![Static Badge](https://img.shields.io/badge/API%20Gateway-8A2BE2) ![Static Badge](https://img.shields.io/badge/Requests-8A2BE2) ![Static Badge](https://img.shields.io/badge/JSON-8A2BE2) ![Static Badge](https://img.shields.io/badge/YAML-8A2BE2) ![Static Badge](https://img.shields.io/badge/Command%20line-8A2BE2) ![Static Badge](https://img.shields.io/badge/SQLAlchemy-8A2BE2)
 
@@ -32,7 +32,16 @@
 
 ## [Project Overview](#project-overview)
 
-To mimic the creation of real-time user data from Pinterest, I wrote a Python program that extracts rows of data at random from three tables within an AWS RDS database. Using multiprocessing, each randomly extracted datapoint is sent as a JSON object into two distinct processing layers of the pipeline via the two resources of an API I developed on AWS API Gateway.
+To mimic the creation of real-time user data from Pinterest, I wrote a Python program that extracts a set of data at random from three tables in an AWS RDS database every 0-2 seconds. The three datasets are linked by index number: each set of three rows with the same index number represent three collections of data relating to one Pinterest user event:
+- the data about the Pinterest post itself;
+- the data about the user;
+- and the geolocation data.
+
+The data is sent into two distinct layers of the experiment pipeline (one for batch processing and one for stream processing) via the two resources of an API I developed on AWS API Gateway.
+
+Although the tasks are largely I/O-bound for this part of the pipeline, I opted for a multiprocessing approach to run the program extracting and sending datapoints relating to each of the three datasets in parallel. This probably would not translate to the real-world use-case but it was in this case of benefit, since I could take advantage of being able to pass a shared random number generator to each of the processes - ensuring the three rows of data being extracted and sent on each CPU for each dataset at each time were related to the same event and produced on the same timeline.
+
+Since for each unique data-sending event, two API requests had to be made, I workshopped and researched a few different implementations of multithreading here with a view to optimising throughput and overhead usage. In the end, I implemented this using a ThreadPoolExecutor context that is kept open for the duration of the data sending process.
 
 The pipeline is developed using a Lambda architecture.
 
@@ -50,7 +59,7 @@ For the **Speed Layer** (or **Stream Layer**):
 
 (The next stage of development for this pipeline would be to develop the **Server Layer** of the architecture, where the outputs of the batch and stream layers could be merged to allow for both historical and real-time data analysis.)
 
-The same **data cleaning transformations** are performed on the corresponding datasets across the two layers. These include:
+The same **data cleaning transformations** are performed on the corresponding datasets in the two layers. These include:
 - Reordering, renaming, combining and/or dropping columns for better data comprehension
 - Type-casting columns where necessary
 - Data normalisation, including replacing missing or unmeaningful values with `None`
