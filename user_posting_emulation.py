@@ -5,18 +5,31 @@ from time import sleep
 from posting_emulation_utils.aws_db_connector import AWSDBConnector
 from posting_emulation_utils.data_sender import DataSender
 
+import concurrent.futures
+
 
 new_connector = AWSDBConnector("posting_emulation_utils/aws_db_config.yaml")
 
 def worker(data_sender, stop_event, random_number_generator):
+
     engine = new_connector.create_db_connector()
-    while not stop_event.is_set():
-        sleep(random_number_generator.randrange(0, 2))
-        random_row_number = random_number_generator.randint(0, 11000)
-        with engine.connect() as connection:
-            data_sender.post_random_record_to_batch_and_stream_layers(connection, random_row_number)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+
+        while not stop_event.is_set():
+
+            random_row_number = random_number_generator.randint(0, 11000)
+
+            with engine.connect() as connection:
+                dict_for_json = data_sender.produce_data_dict_for_request_payload(connection, random_row_number)
+
+            pool.submit(data_sender.post_record_to_stream_layer, dict_for_json)
+            pool.submit(data_sender.post_record_to_batch_layer, dict_for_json)
+
+            sleep(random_number_generator.randrange(0, 2))
 
 if __name__ == "__main__":
+
     stop_event = Event()
 
     shared_random_number_generator = random.Random(100)

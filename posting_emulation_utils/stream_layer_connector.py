@@ -16,7 +16,7 @@ class StreamLayerConnector(DataGenerator):
         request_url = f"{invoke_url}/streams/{self.stream_name}/record"
         return request_url
 
-    def _post_record_to_stream_layer(self, dict_for_json):
+    def post_record_to_stream_layer(self, dict_for_json):
 
         payload = json.dumps({
             "StreamName": "{self.stream_name}",

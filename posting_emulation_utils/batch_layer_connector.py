@@ -16,7 +16,7 @@ class BatchLayerConnector(DataGenerator):
         request_url = f"{invoke_url}/topics/{self.topic_name}"
         return request_url
 
-    def _post_record_to_batch_layer(self, dict_for_json):
+    def post_record_to_batch_layer(self, dict_for_json):
         payload = json.dumps({
                 "records": [
                     {
