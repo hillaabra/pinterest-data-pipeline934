@@ -34,9 +34,9 @@
 ## [Project Overview](#project-overview)
 
 To mimic the creation of real-time user data from Pinterest, I wrote a Python program that extracts a set of data at random, every 0-2 seconds, from three tables in an AWS RDS database storing historic Pinterest data. The three datasets are linked by index number: each set of three rows with the same index number represent three collections of data relating to one Pinterest user event:
-- the data about the Pinterest post itself;
-- the data about the user;
-- and the geolocation data.
+- Data relating to the Pinterest post itself
+- Data about the user that interacted with the post
+- Data about the geolocation of the user-post interaction
 
 ### The datasets in their original form in the AWS database:
 
@@ -50,7 +50,7 @@ Since for each unique data-sending event, two API requests had to be made, I wor
 
 The pipeline is developed using a Lambda architecture.
 
-![](images/lambda-architecture.png)
+![lambda-architecture-flow-diagram](images/lambda-architecture.png)
 
 For the **Batch Layer**:
 - The data is ingested, in relation to three Kafka topics, via a REST proxy-integrated API connecting the Kafka Client launched on an EC2 instance with an MSK cluster on AWS.
@@ -94,10 +94,13 @@ In terms of AWS Cloud infrastucture, the pipeline is made up of the following co
 - An API configured on API Gateway with:
     - a proxy resource integrated with the EC2 instance for the ingestion of data via the Kafka client
     - Kinesis-integrated resources with HTTP methods enabling the ingestion of data to Kinesis streams with header settings configured
-- 3x data streams created in AWS Kinesis (1x for each dataset)
+- 3x data streams created in AWS Kinesis (1x for each dataset), e.g. to follow the naming conventions used in this project:
+    - `streaming-<UserID>-pin`
+    - `streaming-<UserID>-user`
+    - `streaming-<UserID>-geo`
 - An MWAA environment and an S3 bucket within it to hold the DAGs for the batch layer job orchestration, with API-token access to allow Databricks to connect to the AWS account
 
-In order to follow the principle of least privilege, it would be recommended to:
+In order to follow principles of least privilege, it would be recommended to:
 - Create an IAM user with full S3 access permissions through which to authorize connection between Databricks and AWS S3
 - Create and assume an IAM role allowing authentication to the MSK cluster through the EC2 client machine
 - Create and assume an IAM role granting the necessary permissions to invoke Kinesis actions - and assign this as the execution role at the corresponding API integration points
@@ -110,18 +113,19 @@ Inside the EC2 client the user will need to:
 - Download Java and Kafka (the same version as is run on the MSK cluster)
 - Install the IAM MSK Authentication package (available on GitHub) within the Kafka `libs` directory
 - Export a path to the `IAM MSK Authentication` package to a `CLASSPATH` variable inside their EC2 instance's `/home/ec2-user/.bashrc` file (to enable the Kafka client to locate and utilise the necessary Amazon MSK IAM libraries when executing commands)
-- Configure the Kafka client to use `AWS IAM authentication` to the cluster by modifying the `client.properties` file inside the Kafka `bin` directory, configuring it to communicate with the API REST proxy resource created previously
+- Configure the Kafka client to use AWS IAM authentication to the cluster by modifying the `client.properties` file inside the Kafka `bin` directory, configuring it to communicate with the API REST proxy resource created previously
 - Create three Kafka topics on the EC2 Client, e.g.:
     - `<UserId>.pin` for the Pinterest posts data
     - `<UserId>.geo` for the post geolocation data
     - `<UserId>.user` for the post user data
 - Download an S3 connector that can export data from Kafka topics to S3 (this pipeline used Confluent.io's Amazon S3 Connector)
+- Configure the settings in the `kafka-rest.properties` file inside the newly created connector directory, e.g. `confluent-7.2.0/etc/kafka-rest` to configure the REST proxy to communicate with the desired MSK cluster and to perform IAM authentication
 - Copy the connector over to the dedicated (batch-layer) S3 bucket on AWS
 
 Back on the AWS console, the user will need to:
 - Create a custom plug-in on MSK Connect using the S3 connector copied over to the S3 bucket from the EC2 Client
 - Create an S3 sink connector which is configured to ensure that the data going through all the three previously created Kafka topics will get sent to the correct S3 bucket (the connector in this pipeline was configured to be provisioned with a single MCU count per worker and single worker, and was provided access permissions to the IAM role mentioned previously)
-- Upload the DAG script to the S3 bucket in the MWAA environment
+- After making the necessary amendments, upload the DAG script from this GitHub repo to the S3 bucket in the MWAA environment
 - Deploy the API and copy the invoke URL over to the `api_gateway_config.yaml` on their local machine (see file structure below)
 
 ### Other files and repositories:
@@ -132,7 +136,7 @@ Back on the AWS console, the user will need to:
     - `api_gateway_config.yaml` to store the invoke url of the API created on API Gateway
     - `aws_db_config.yaml` to store the database connection details for the AWS-stored data from which we are extracting the simulated data points
     - `<UserId>-key-pair.pem` to store the value for the key-pair used for SSH client authenticaion to your EC2 instance
-    - *See the file structure diagram below, to see where these are saved.*
+    - *See file structure below, to see where these are saved.*
 - The DAG file stored in the `dags` directory of this repository needs to be uploaded to the `dags` folder within the dedicated bucket in the MWAA environment. (The DAG configuration settings in the script will need to be adjusted as per the pipeline's requirements.)
 
 ### Launching the pipeline:
@@ -144,7 +148,7 @@ Back on the AWS console, the user will need to:
 ```
 $ ./kafka-rest-start /home/ec2-user/confluent-7.2.0/etc/kafka-rest/kafka-rest.properties
 ```
-- From a terminal window in the repository, start generating and sending data into the pipeline by running:
+- From a terminal window in the repository on your local machine, start generating and sending data into the pipeline by running:
 ```
 $ python user_posting_emulation.py
 ```
@@ -154,19 +158,32 @@ $ python user_posting_emulation.py
 
 ## [File Structure](#file-structure)
 
-The files available in this repository represent:
-- those that make up the data generation/posting emulation program from my local machine
-- the Databricks Workspace
-- the `dags/` repository in the S3 bucket within the MWAA environment on AWS
+The files available in this repository represent those that make up the posting emulation program from my **local machine**, the notebooks that make up the processing layers of the pipeline in **the Databricks Workspace** online, and the `dags/` repository in **the S3 bucket within the MWAA environment on AWS** which monitors and orchestrates the processing of the batch layer data.
 
-### [Local Machine](#local-machine)
+Also represented in the sections below are the required file structures of the S3 bucket for the batch layer and of the EC2 Client Machine.
+
+### 1. [Local Machine File Structure](#local-machine)
+
+The following files make up the posting emulation program run from my local machine - note the files hidden from this GitHub repository:
 
 ![Carbon code block representing local machine file structure](images/carbon-local-machine.png)
 
-### [Databricks Workspace](#databricks-workspace)
+### 2. [EC2 Client Machine File Structure](#ec2-client-machine)
+
+Refer to the file structure below when following the installation instructions within the EC2 Client Machine:
+
+![Carbon code block representing EC2 machine file structure](images/carbon-ec2-machine.png)
+
+### 3. [Databricks Workspace File Structure](#databricks-workspace)
+
+Set up your Databricks Workspace exactly as shown (not forgetting the `authentication-credentials.csv` which additionally needs to be stored in the Filestore):
+
 ![A code block representing the file structure of the databricks workspace](images/carbon-databricks.png)
 
-### [AWS S3 Buckets](#s3-buckets)
+### 4. [AWS S3 Buckets File Structure](#s3-buckets)
+
+Refer to the file structure below when following the installation instructions relating to AWS S3 and AWS MWAA:
+
 ![A code block representing the file structures of the S3 buckets on AWS](images/carbon-s3.png)
 
 ## [Usage](#usage)
