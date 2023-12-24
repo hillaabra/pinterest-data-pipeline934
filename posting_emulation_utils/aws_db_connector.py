@@ -19,12 +19,16 @@ class AWSDBConnector:
     ----------
     HOST: str
         The "HOST" setting loaded from credentials YAML file
+
     USER: str
         The "USER" setting loaded from the credentials YAML file
+
     PASSWORD: str
         The "PASSWORD" setting loaded from the credentials YAML file
+
     DATABASE: str
         The "DATABASE" setting loaded from the credentials YAML file
+
     PORT: int
         The "PORT" setting loaded from the credentials YAML file
     """
