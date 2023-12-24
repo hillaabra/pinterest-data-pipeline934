@@ -206,15 +206,142 @@ $ python user_posting_emulation.py
 
 ### Daily batch views
 The pipeline is built to produce the following batch views on the master dataset daily:
-1. The most popular post category per country;
-2. The most popular post category per year;
-3. The users with the most followers per country;
-4. The country(s) of the user with the most followers;
-5. The most popular post category per age group;
-6. The median follower count per age group;
-7. The total new users per year;
-8. The median follower count per joining year;
-9. The median follower count per joining year and age group.
+1. The most popular post category per country, e.g.;
+
+|country|category|category_count|
+| --- | --- | --- |
+|         Afghanistan|     education|             9|
+|             Albania|           art|            14|
+|             Algeria|        quotes|            19|
+|      American Samoa|       tattoos|             7|
+|             Andorra|       tattoos|             7|
+|              Angola|     education|             4|
+|            Anguilla|diy-and-crafts|             4|
+|Antarctica (the t...|       tattoos|             4|
+| Antigua and Barbuda|     christmas|             3|
+| Antigua and Barbuda|           art|             3|
+|           Argentina|       tattoos|             9|
+|             Armenia|           art|             4|
+|               Aruba|           art|             7|
+|           Australia|     education|             2|
+|           Australia|     christmas|             2|
+|           Australia|  mens-fashion|             2|
+|             Austria|        travel|             3|
+|             Austria|       tattoos|             3|
+|          Azerbaijan|       finance|             4|
+|             Bahamas|     christmas|             3|
+|...|...|...|
+
+2. The most popular post category per year, e.g;
+
+|post_year|      category|category_count|
+|---|---|---|
+|     2018|     christmas|            23|
+|     2018|        travel|            20|
+|     2018|diy-and-crafts|            19|
+|     2018|        quotes|            18|
+|     2018|           art|            18|
+|     2018|     education|            17|
+|     2018|        beauty|            15|
+|     2018|       tattoos|            13|
+|     2018|      vehicles|            13|
+|     2018|  mens-fashion|            12|
+|     2018|event-planning|            11|
+|     2018|       finance|            10|
+|     2018|    home-decor|             6|
+|     2019|           art|            17|
+|     2019|     education|            16|
+|     2019|diy-and-crafts|            16|
+|     2019|     christmas|            15|
+|     2019|    home-decor|            15|
+|     2019|        quotes|            15|
+|     2019|       tattoos|            14|
+|...|...|...|
+
+3. The users with the most followers per country, e.g.;
+
+|             country|         poster_name|follower_count|
+| --- | --- | --- |
+|         Afghanistan|                9GAG|       3000000|
+|             Albania|   The Minds Journal|       5000000|
+|             Algeria|           YourTango|        942000|
+|      American Samoa|         Mamas Uncut|       8000000|
+|             Andorra|Teachers Pay Teac...|       1000000|
+|              Angola|           Tastemade|       8000000|
+|            Anguilla|Kristen | Lifesty...|         92000|
+|Antarctica (the t...|          Refinery29|       1000000|
+| Antigua and Barbuda|Country Living Ma...|       1000000|
+|           Argentina|         Cheezburger|       2000000|
+|             Armenia|Michelle {CraftyM...|        892000|
+|               Aruba|         GQ Magazine|        874000|
+|           Australia|        Mujer de 10 |       2000000|
+|             Austria|               Diply|        251000|
+|          Azerbaijan|     Style Me Pretty|       6000000|
+|             Bahamas|  Handmade Charlotte|        948000|
+|             Bahrain|Alea Milham | Pre...|        332000|
+|          Bangladesh|Better Homes and ...|       4000000|
+|            Barbados|The Creativity Ex...|        410000|
+|             Belarus| Something Turquoise|        312000|
+|...|...|...|
+
+4. The country of the user with the most followers, e.g.;
+
+|       country|follower_count|
+| --- | --- |
+|American Samoa|       8000000|
+|        Angola|       8000000|
+
+5. The most popular post category per age group, e.g.;
+
+|age_group|    category|category_count|
+| --- | --- | --- |
+|    18-24|     tattoos|            55|
+|    25-35|   christmas|            26|
+|    36-50|      quotes|            20|
+|      50+|mens-fashion|            10|
+
+6. The median follower count per age group, e.g.;
+
+|age_group|median_follower_count|
+| --- | --- |
+|    18-24|                84000|
+|    25-35|                21000|
+|    36-50|                 6000|
+|      50+|                 1000|
+
+7. The total new users per year, e.g.;
+
+|post_year|number_users_joined|
+| --- | --- |
+|     2015|                379|
+|     2016|                424|
+|     2017|                150|
+
+8. The median follower count per joining year, e.g.;
+
+|post_year|median_follower_count|
+| --- | --- |
+|     2015|               123000|
+|     2016|                19000|
+|     2017|                 2000|
+
+9. The median follower count per joining year and age group, e.g:
+
+|age_group|post_year|median_follower_count|
+| --- | --- | --- |
+|    18-24|     2015|               211000|
+|    25-35|     2015|                44000|
+|    36-50|     2015|                10000|
+|      50+|     2015|                 1000|
+|    18-24|     2016|                40000|
+|    25-35|     2016|                19000|
+|    36-50|     2016|                 8000|
+|      50+|     2016|                 1000|
+|    18-24|     2017|                10000|
+|    25-35|     2017|                 1000|
+|    36-50|     2017|                 3000|
+|      50+|     2017|                 1000|
+
 
 ## [Licence](#licence)
 
