@@ -93,6 +93,9 @@ In terms of AWS Cloud infrastucture, the pipeline is made up of the following co
 - An API configured on API Gateway with:
     - a proxy resource integrated with the EC2 instance for the ingestion of data via the Kafka client
     - Kinesis-integrated resources with HTTP methods enabling the ingestion of data to Kinesis streams with header settings configured
+
+![API Resource Tree](readme-assets/carbon-api-resources.png)
+
 - 3x data streams created in AWS Kinesis (1x for each dataset), e.g. to follow the naming conventions used in this project:
     - `streaming-<UserID>-pin`
     - `streaming-<UserID>-user`
