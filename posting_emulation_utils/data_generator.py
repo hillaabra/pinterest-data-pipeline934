@@ -14,6 +14,7 @@ class DataGenerator(ABC):
     ----------
     source_table_name: str
         The name of the table in the pre-existing SQL database of data being extracted from.
+
     datetime_column_name: str
         Default value: None. If existing, the name of the column within the specified table
         that has a datetime type value. (There is only one such column in two out of the
@@ -23,6 +24,7 @@ class DataGenerator(ABC):
     ----------
     source_table_name: str
         The name of the table in the pre-existing SQL database of data being extracted from.
+
     datetime_column_name: str
         Initialised as None by default; if exists, the name of the column within the specified table
         that has a datetime type value.
