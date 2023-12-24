@@ -5,10 +5,10 @@ from sqlalchemy import engine, text
 
 class DataGenerator(ABC):
     """
-    Abstract Base Class at the top of the class hierarchy, which defines
-    the methods to be used by the child class to extract data at random
-    from the specified table in a remote SQL database in order to emulate
-    user posting data being generated.
+    Abstract Base Class which defines methods used by the BatchLayerConnector
+    and StreamLayerConnector child classes and the DataSender grandchild class
+    to extract data from the specified table in a remote SQL database
+    in order to emulate user posting data being generated.
 
     Parameters:
     ----------
