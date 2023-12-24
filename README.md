@@ -28,7 +28,6 @@
     * [Databricks Workspace](#databricks-workspace)
     * [AWS S3 Buckets](#s3-buckets)
 * [Usage](#usage)
-* [Next Steps](#next-steps)
 * [Licence](#licence)
 
 ## [Project Overview](#project-overview)
@@ -205,7 +204,7 @@ $ python user_posting_emulation.py
 - The batch layer pipeline can be monitored through the Apache Airflow UI, which can be accessed through the environment on the AWS MWAA console.
 
 ### Daily batch views
-The pipeline is built to produce the following batch views on the master dataset daily:
+The pipeline is built to run a set of SQL queries on each batch of cleaned data, in order to produce the following batch views on the master dataset daily:
 1. The most popular post category per country, e.g.;
 
 |country|category|category_count|
@@ -341,7 +340,6 @@ The pipeline is built to produce the following batch views on the master dataset
 |    25-35|     2017|                 1000|
 |    36-50|     2017|                 3000|
 |      50+|     2017|                 1000|
-
 
 ## [Licence](#licence)
 
