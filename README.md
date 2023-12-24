@@ -3,7 +3,7 @@
 *Data Engineering Project - [AiCore](https://www.theaicore.com/) (December 2023)*
 
 
-![Static Badge](https://img.shields.io/badge/Skills%20%26%20Knowledge-A8B78B) ![Static Badge](https://img.shields.io/badge/Big%20data%20storage%20and%20analytics-8A2BE2) ![Static Badge](https://img.shields.io/badge/Data%20ingestion-8A2BE2) ![Static Badge](https://img.shields.io/badge/Data%20governance%20and%20quality-8A2BE2) ![Static Badge](https://img.shields.io/badge/ETL%20pipeline-8A2BE2) ![Static Badge](https://img.shields.io/badge/Stream%20processing-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20cloud-8A2BE2) ![Static Badge](https://img.shields.io/badge/Batch%20processing-8A2BE2) ![Static Badge](https://img.shields.io/badge/API%20development-8A2BE2) ![Static Badge](https://img.shields.io/badge/REST%20proxy%20integration-8A2BE2) ![Static Badge](https://img.shields.io/badge/Lambda%20architecture-8A2BE2) ![Static Badge](https://img.shields.io/badge/Serverless%20computing-8A2BE2) ![Static Badge](https://img.shields.io/badge/Object%20oriented%20programming-8A2BE2) ![Static Badge](https://img.shields.io/badge/Multiprocessing%20and%20multithreading-8A2BE2) ![Static Badge](https://img.shields.io/badge/Least%20privilege%20permissions-8A2BE2) ![Static Badge](https://img.shields.io/badge/Virtual%20Machines-8A2BE2)
+![Static Badge](https://img.shields.io/badge/Skills%20%26%20Knowledge-A8B78B) ![Static Badge](https://img.shields.io/badge/Big%20data%20storage%20and%20analytics-8A2BE2) ![Static Badge](https://img.shields.io/badge/Data%20ingestion-8A2BE2) ![Static Badge](https://img.shields.io/badge/Data%20governance%20and%20quality-8A2BE2) ![Static Badge](https://img.shields.io/badge/ETL%20pipeline-8A2BE2) ![Static Badge](https://img.shields.io/badge/Stream%20processing-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20cloud-8A2BE2) ![Static Badge](https://img.shields.io/badge/Batch%20processing-8A2BE2) ![Static Badge](https://img.shields.io/badge/API%20development-8A2BE2) ![Static Badge](https://img.shields.io/badge/REST%20proxy%20integration-8A2BE2) ![Static Badge](https://img.shields.io/badge/Lambda%20architecture-8A2BE2) ![Static Badge](https://img.shields.io/badge/Serverless%20computing-8A2BE2) ![Static Badge](https://img.shields.io/badge/Object%20oriented%20programming-8A2BE2) ![Static Badge](https://img.shields.io/badge/Parallelism%20vs%20concurrency-8A2BE2) ![Static Badge](https://img.shields.io/badge/Virtual%20Machines-8A2BE2) ![Static Badge](https://img.shields.io/badge/Bash%20scripting-8A2BE2)
 
 ![Static Badge](https://img.shields.io/badge/Languages,%20Tools%20%26%20Libraries-A8B78B)  ![Static Badge](https://img.shields.io/badge/Python-8A2BE2) ![Static Badge](https://img.shields.io/badge/SQL-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20MSK-8A2BE2) ![Static Badge](https://img.shields.io/badge/Amazon%20EC2-8A2BE2) ![Static Badge](https://img.shields.io/badge/Apache%20Kafka-8A2BE2) ![Static Badge](https://img.shields.io/badge/Apache%20Spark-8A2BE2) ![Static Badge](https://img.shields.io/badge/Apache%20Airflow-8A2BE2) ![Static Badge](https://img.shields.io/badge/Databricks-8A2BE2) ![Static Badge](https://img.shields.io/badge/MWAA-8A2BE2) ![Static Badge](https://img.shields.io/badge/IAM%20role%20management-8A2BE2) ![Static Badge](https://img.shields.io/badge/IAM%20MSK%20Authentication-8A2BE2) ![Static Badge](https://img.shields.io/badge/MSK%20Connect-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20Kinesis-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20S3-8A2BE2) ![Static Badge](https://img.shields.io/badge/API%20Gateway-8A2BE2) ![Static Badge](https://img.shields.io/badge/Requests-8A2BE2) ![Static Badge](https://img.shields.io/badge/JSON-8A2BE2) ![Static Badge](https://img.shields.io/badge/YAML-8A2BE2) ![Static Badge](https://img.shields.io/badge/Command%20line-8A2BE2) ![Static Badge](https://img.shields.io/badge/SQLAlchemy-8A2BE2)
 
@@ -40,17 +40,17 @@ To mimic the creation of real-time user data from Pinterest, I wrote a Python pr
 
 ### The datasets in their original form in the AWS database:
 
-![ERD database tables](images/db-erd.png)
+![ERD database tables](readme-assets/db-erd.png)
 
 The data is sent into two distinct layers of the experiment pipeline (one for batch processing and one for stream processing) via the two resources of an API I developed on AWS API Gateway.
 
-Although the tasks are largely I/O-bound for this part of the pipeline, I opted for a multiprocessing approach to run the program extracting and sending datapoints relating to each of the three datasets in parallel. This probably wouldn't translate to the real-world use-case but it was in this case of benefit, since I could take advantage of being able to pass a shared random number generator to each of the processes - ensuring the three rows of data being extracted for each dataset at each time were related to the same event and produced on the same timeline.
+Although the tasks are largely I/O-bound for this part of the pipeline, I opted for a multiprocessing approach to run the program extracting and sending datapoints relating to each of the three datasets in parallel. This probably wouldn't translate to the real-world use-case but it was in this case beneficial, since I could take advantage of being able to pass a shared random number generator to each of the processes - ensuring the three rows of data being extracted for each dataset at each time were related to the same event and produced on the same timeline.
 
-Since for each unique data-sending event, two API requests had to be made, I workshopped and researched a few different implementations of multithreading here with a view to optimising throughput and overhead usage. In the end, I implemented this using a ThreadPoolExecutor context that is kept open for the duration of the data sending process.
+Since for each unique data-sending event two API requests had to be made, I workshopped and researched a few different implementations of multithreading here with a view to optimising throughput and overhead usage. In the end, I implemented this using a ThreadPoolExecutor context that is kept open for the duration of the data sending process.
 
 The pipeline is developed using a Lambda architecture.
 
-![lambda-architecture-flow-diagram](images/lambda-architecture.png)
+![lambda-architecture-flow-diagram](readme-assets/lambda-architecture.png)
 
 For the **Batch Layer**:
 - The data is ingested, in relation to three Kafka topics, via a REST proxy-integrated API connecting the Kafka Client launched on an EC2 instance with an MSK cluster on AWS.
@@ -73,7 +73,7 @@ The same **data cleaning transformations** are performed on the corresponding da
 
 ### [Pipeline Infrastructure](#infrastructure-diagram)
 
-![pipeline-cloud-infrastructure](images/cloud-pipeline-infrastructure.png)
+![pipeline-cloud-infrastructure](readme-assets/cloud-pipeline-infrastructure.png)
 
 ## [Installation](#installation)
 
@@ -137,62 +137,84 @@ Back on the AWS console, the user will need to:
     - `aws_db_config.yaml` to store the database connection details for the AWS-stored data from which we are extracting the simulated data points
     - `<UserId>-key-pair.pem` to store the value for the key-pair used for SSH client authenticaion to your EC2 instance
     - *See file structure below, to see where these are saved.*
-- The DAG file stored in the `dags` directory of this repository needs to be uploaded to the `dags` folder within the dedicated bucket in the MWAA environment. (The DAG configuration settings in the script will need to be adjusted as per the pipeline's requirements.)
+- The DAG script stored in the `dags` directory of this repository needs to be uploaded to the `dags` folder within the dedicated bucket in the MWAA environment. (The DAG configuration settings in the script will need to be adjusted as per the pipeline's requirements.)
 
-### Launching the pipeline:
-- Double check consistency in the Kafka topic naming across the Kafka Client on EC2, the local machine emulation script and the Databricks workspace config dictionary.
-- Double check consistency in the Kinesis stream naming across AWS Kinesis, the local machine emulation script and the Databricks workspace stream layer pipeline notebook.
-- Make sure the EC2 instance is in launched-mode, and its current state publicDNS has been used in the proxy integration API resource on API Gateway.
-- Make sure the API on API Gateway is deployed and the correct invoke URL has been passed into the `api_gateway_config.yaml` file on your local machine
-- From your EC2 instance, start the REST proxy by first navigating to `confluent-7.2.0/bin` then running:
-```
-$ ./kafka-rest-start /home/ec2-user/confluent-7.2.0/etc/kafka-rest/kafka-rest.properties
-```
-- From a terminal window in the repository on your local machine, start generating and sending data into the pipeline by running:
-```
-$ python user_posting_emulation.py
-```
-- Press enter at any time in the terminal to stop the data generation and posting and bring the user_posting_emulation script to a close.
-- Within Databricks, manually trigger the stream-processing layer by running the code blocks sequentially in `stream_pipeline.ipynb`
-- The batch layer pipeline can be monitored through the Apache Airflow UI on AWS MWAA, or it can also be manually triggered for testing by running the code blocks in the `batch_processing_pipeline.ipynb` notebook.
+Follow the instructions in [Usage](#usage) below for how to actually launch the pipeline from here.
 
 ## [File Structure](#file-structure)
 
 The files available in this repository represent those that make up the posting emulation program from my **local machine**, the notebooks that make up the processing layers of the pipeline in **the Databricks Workspace** online, and the `dags/` repository in **the S3 bucket within the MWAA environment on AWS** which monitors and orchestrates the processing of the batch layer data.
 
-Also represented in the sections below are the required file structures of the S3 bucket for the batch layer and of the EC2 Client Machine.
+Also represented in the sections below are the required file structures of the S3 buckets on the AWS Console and of the EC2 Client Machine.
 
 ### 1. [Local Machine File Structure](#local-machine)
 
 The following files make up the posting emulation program run from my local machine - note the files hidden from this GitHub repository:
 
-![Carbon code block representing local machine file structure](images/carbon-local-machine.png)
+![Carbon code block representing local machine file structure](readme-assets/carbon-local-machine.png)
 
 ### 2. [EC2 Client Machine File Structure](#ec2-client-machine)
 
 Refer to the file structure below when following the installation instructions within the EC2 Client Machine:
 
-![Carbon code block representing EC2 machine file structure](images/carbon-ec2-machine.png)
+![Carbon code block representing EC2 machine file structure](readme-assets/carbon-ec2-machine.png)
 
 ### 3. [Databricks Workspace File Structure](#databricks-workspace)
 
 Set up your Databricks Workspace exactly as shown (not forgetting the `authentication-credentials.csv` which additionally needs to be stored in the Filestore):
 
-![A code block representing the file structure of the databricks workspace](images/carbon-databricks.png)
+![A code block representing the file structure of the databricks workspace](readme-assets/carbon-databricks.png)
 
 ### 4. [AWS S3 Buckets File Structure](#s3-buckets)
 
 Refer to the file structure below when following the installation instructions relating to AWS S3 and AWS MWAA:
 
-![A code block representing the file structures of the S3 buckets on AWS](images/carbon-s3.png)
+![A code block representing the file structures of the S3 buckets on AWS](readme-assets/carbon-s3.png)
 
 ## [Usage](#usage)
 
-To emulate the data generated by Pinterest, this project relies on access to an RDS database on AWS storing data across three tables which resemble the data generated each time a user posts something on Pinterest. The three datasets represent:
-- Data relating to the Pinterest post itself (aka the `pin` table)
-- Data about the user that interacted with the post (aka the `user` table)
-- Data about the geolocation of the user-post interaction (aka the `geo` table)
+### Launching the pipeline:
+- Before launching the pipeline:
+    - check consistency in the Kafka topic naming across the Kafka Client on EC2, the local machine emulation script and the Databricks workspace config dictionary;
+    - check consistency in the Kinesis stream naming across AWS Kinesis, the local machine emulation script and the Databricks workspace stream layer pipeline notebook;
+    - make sure the EC2 instance is in launched-mode, and its current state publicDNS has been used in the proxy integration API resource on API Gateway;
+    - make sure the API on API Gateway is deployed and the correct invoke URL has been passed into the `api_gateway_config.yaml` file on your local machine.
+- Connect to the EC2 instance from the terminal using the SSH Client protocol, e.g.:
+```
+$ ssh -i <filepath to key-value .pem file> ec2-user@<ec2-IP-address>.compute-1.amazonaws.com
+```
+- Inside the EC2 instance, navigate to the REST proxy directory bin, e.g.:
+```
+$ cd confluent-7.2.0/bin
+```
+- Start the REST proxy:
+```
+$ ./kafka-rest-start /home/ec2-user/confluent-7.2.0/etc/kafka-rest/kafka-rest.properties
+```
+- When the Kafka REST proxy is fully started up (it will indicate that the server is listening), from a terminal window in the repository on your local machine, start generating and sending data into the pipeline by running:
+```
+$ python user_posting_emulation.py
+```
+- Press ENTER at any time in the terminal to stop the data posting and bring the user_posting_emulation script to a close:
+![](readme-assets/giphy-data-being-sent-from-terminal.gif)
 
+- Within Databricks, manually trigger the stream-processing layer by running the code blocks sequentially in `stream_processing_pipeline.ipynb`
+- You can also manually trigger the batch layer processing for testing by running the code blocks in the `batch_processing_pipeline.ipynb` notebook.
+
+### Job orchestration
+- The batch layer pipeline can be monitored through the Apache Airflow UI, which can be accessed through the environment on the AWS MWAA console.
+
+### Daily batch views
+The pipeline is built to produce the following batch views on the master dataset daily:
+1. The most popular post category per country;
+2. The most popular post category per year;
+3. The users with the most followers per country;
+4. The country(s) of the user with the most followers;
+5. The most popular post category per age group;
+6. The median follower count per age group;
+7. The total new users per year;
+8. The median follower count per joining year;
+9. The median follower count per joining year and age group.
 
 ## [Licence](#licence)
 
