@@ -40,7 +40,7 @@ To mimic the creation of real-time user data from Pinterest, I wrote a Python pr
 
 ### The datasets in their original form in the AWS database:
 
-![ERD database tables](readme-assets/db-erd.png)
+![ERD database tables](readme-assets/db-erd-pre-processing.png)
 
 The data is sent into two distinct layers of the experiment pipeline (one for batch processing and one for stream processing) via the two resources of an API I developed on AWS API Gateway.
 
