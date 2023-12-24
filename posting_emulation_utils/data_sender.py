@@ -3,6 +3,7 @@ from .stream_layer_connector import StreamLayerConnector
 
 import sqlalchemy
 
+
 class DataSender(BatchLayerConnector, StreamLayerConnector):
     """
     Class inheriting from BatchLayerConnector and StreamLayerConnector classes.
