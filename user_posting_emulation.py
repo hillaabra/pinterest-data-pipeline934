@@ -78,7 +78,7 @@ if __name__ == "__main__":
         process.start()
         processes.append(process)
 
-    input("Data being sent... Hit enter to stop sending data to the pipeline...")
+    input("Data being sent... Hit enter to stop sending data to the pipeline...\n")
 
     stop_event.set()
 
