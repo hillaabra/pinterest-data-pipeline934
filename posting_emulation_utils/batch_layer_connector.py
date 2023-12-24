@@ -13,7 +13,7 @@ class BatchLayerConnector(DataGenerator):
     Parameters:
     ----------
     topic_name: str
-        The name of the Kafka topic data to send data through. This should match
+        The name of the Kafka topic to send data through. This should match
         the naming of the Kafka topic created for this dataset in the Kafka (EC2) Client.
 
     source_table_name: str
