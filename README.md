@@ -3,7 +3,7 @@
 *Data Engineering Project - [AiCore](https://www.theaicore.com/) (December 2023)*
 
 
-![Static Badge](https://img.shields.io/badge/Skills%20%26%20Knowledge-A8B78B) ![Static Badge](https://img.shields.io/badge/Big%20data%20storage%20and%20analytics-8A2BE2) ![Static Badge](https://img.shields.io/badge/Data%20ingestion-8A2BE2) ![Static Badge](https://img.shields.io/badge/Data%20governance%20and%20quality-8A2BE2) ![Static Badge](https://img.shields.io/badge/ETL%20pipeline-8A2BE2) ![Static Badge](https://img.shields.io/badge/Stream%20processing-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20cloud-8A2BE2) ![Static Badge](https://img.shields.io/badge/Batch%20processing-8A2BE2) ![Static Badge](https://img.shields.io/badge/API%20development-8A2BE2) ![Static Badge](https://img.shields.io/badge/REST%20proxy%20integration-8A2BE2) ![Static Badge](https://img.shields.io/badge/Lambda%20architecture-8A2BE2) ![Static Badge](https://img.shields.io/badge/Serverless%20computing-8A2BE2) ![Static Badge](https://img.shields.io/badge/Object%20oriented%20programming-8A2BE2) ![Static Badge](https://img.shields.io/badge/Parallelism%20vs%20concurrency-8A2BE2) ![Static Badge](https://img.shields.io/badge/Virtual%20Machines-8A2BE2) ![Static Badge](https://img.shields.io/badge/Bash%20scripting-8A2BE2) ![Static Badge](https://img.shields.io/badge/Back--end%20development-8A2BE2)
+![Static Badge](https://img.shields.io/badge/Skills%20%26%20Knowledge-A8B78B) ![Static Badge](https://img.shields.io/badge/Big%20data%20storage%20and%20analytics-8A2BE2) ![Static Badge](https://img.shields.io/badge/Data%20ingestion-8A2BE2) ![Static Badge](https://img.shields.io/badge/Data%20governance%20and%20quality-8A2BE2) ![Static Badge](https://img.shields.io/badge/ETL%20pipelines-8A2BE2) ![Static Badge](https://img.shields.io/badge/Batch%20processing-8A2BE2) ![Static Badge](https://img.shields.io/badge/Stream%20processing-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20Cloud-8A2BE2)  ![Static Badge](https://img.shields.io/badge/API%20development-8A2BE2) ![Static Badge](https://img.shields.io/badge/REST%20proxy%20integration-8A2BE2) ![Static Badge](https://img.shields.io/badge/Lambda%20architecture-8A2BE2) ![Static Badge](https://img.shields.io/badge/Object%20oriented%20programming-8A2BE2) ![Static Badge](https://img.shields.io/badge/Parallelism%20vs%20concurrency-8A2BE2) ![Static Badge](https://img.shields.io/badge/Virtual%20Machines-8A2BE2) ![Static Badge](https://img.shields.io/badge/Bash%20scripting-8A2BE2) ![Static Badge](https://img.shields.io/badge/Back--end%20development-8A2BE2)
 
 ![Static Badge](https://img.shields.io/badge/Languages,%20Tools%20%26%20Libraries-A8B78B)  ![Static Badge](https://img.shields.io/badge/Python-8A2BE2) ![Static Badge](https://img.shields.io/badge/SQL-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20MSK-8A2BE2) ![Static Badge](https://img.shields.io/badge/Amazon%20EC2-8A2BE2) ![Static Badge](https://img.shields.io/badge/Apache%20Kafka-8A2BE2) ![Static Badge](https://img.shields.io/badge/Apache%20Spark-8A2BE2) ![Static Badge](https://img.shields.io/badge/Apache%20Airflow-8A2BE2) ![Static Badge](https://img.shields.io/badge/Databricks-8A2BE2) ![Static Badge](https://img.shields.io/badge/MWAA-8A2BE2) ![Static Badge](https://img.shields.io/badge/IAM%20role%20management-8A2BE2) ![Static Badge](https://img.shields.io/badge/IAM%20MSK%20Authentication-8A2BE2) ![Static Badge](https://img.shields.io/badge/MSK%20Connect-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20Kinesis-8A2BE2) ![Static Badge](https://img.shields.io/badge/AWS%20S3-8A2BE2) ![Static Badge](https://img.shields.io/badge/API%20Gateway-8A2BE2) ![Static Badge](https://img.shields.io/badge/Requests-8A2BE2) ![Static Badge](https://img.shields.io/badge/JSON-8A2BE2) ![Static Badge](https://img.shields.io/badge/YAML-8A2BE2) ![Static Badge](https://img.shields.io/badge/Multiprocessing-8A2BE2) ![Static Badge](https://img.shields.io/badge/Command%20line-8A2BE2) ![Static Badge](https://img.shields.io/badge/SQLAlchemy-8A2BE2)
 
@@ -55,7 +55,7 @@ For the **Batch Layer**:
 - The data is ingested, in relation to three Kafka topics, via a REST proxy-integrated API connecting the Kafka Client launched on an EC2 instance with an MSK cluster on AWS.
 - I created a sink connector within MSK Connect that directs the incoming data to its target topic folder within an S3 bucket.
 - The data is processed within Databricks using Apache Spark: the data from each topic is read into Spark DataFrames and cleaned before being queried using SQL.
-- Extracting comprehensive insights from the so-called historical data of the batch layer, the SQL queries generate daily, precomputed batch views written to Parquet tables within Databricks, ready for ingestion to a **Serving Layer**.
+- I wrote SQL queries to extract a series of comprehensive insights from the so-called historical data of the batch layer: these queries generate daily, precomputed batch views that are written to Parquet tables within Databricks, ready for ingestion to a **Serving Layer**.
 - The job is orchestrated from the Apache Airflow UI on an AWS MWAA environment using a DAG which currently schedules the batch layer pipeline to be run once daily at midnight.
 
 For the **Speed Layer** (or **Stream Layer**):
@@ -204,11 +204,12 @@ $ python user_posting_emulation.py
 - You can also manually trigger the batch layer processing for testing by running the code blocks in the `batch_processing_pipeline.ipynb` notebook.
 
 ### Job orchestration
-- The batch layer pipeline can be monitored through the Apache Airflow UI, which can be accessed through the environment on the AWS MWAA console.
+The batch layer pipeline can be monitored through the Apache Airflow UI, which can be accessed through the environment on the AWS MWAA console.
 
 ### Daily batch views
 The pipeline is built to run a set of SQL queries on each batch of cleaned data, in order to produce the following batch views on the master dataset daily:
-1. The most popular post category per country, e.g.;
+
+1. The most popular post category per country, e.g.:
 
 |country|category|category_count|
 | --- | --- | --- |
@@ -234,7 +235,7 @@ The pipeline is built to run a set of SQL queries on each batch of cleaned data,
 |             Bahamas|     christmas|             3|
 |...|...|...|
 
-2. The most popular post category per year, e.g;
+2. The most popular post category per year, e.g:
 
 |post_year|      category|category_count|
 |---|---|---|
@@ -260,7 +261,7 @@ The pipeline is built to run a set of SQL queries on each batch of cleaned data,
 |     2019|       tattoos|            14|
 |...|...|...|
 
-3. The users with the most followers per country, e.g.;
+3. The users with the most followers per country, e.g.:
 
 |             country|         poster_name|follower_count|
 | --- | --- | --- |
@@ -286,14 +287,14 @@ The pipeline is built to run a set of SQL queries on each batch of cleaned data,
 |             Belarus| Something Turquoise|        312000|
 |...|...|...|
 
-4. The country of the user with the most followers, e.g.;
+4. The country of the user with the most followers, e.g.:
 
 |       country|follower_count|
 | --- | --- |
 |American Samoa|       8000000|
 |        Angola|       8000000|
 
-5. The most popular post category per age group, e.g.;
+5. The most popular post category per age group, e.g.:
 
 |age_group|    category|category_count|
 | --- | --- | --- |
@@ -302,7 +303,7 @@ The pipeline is built to run a set of SQL queries on each batch of cleaned data,
 |    36-50|      quotes|            20|
 |      50+|mens-fashion|            10|
 
-6. The median follower count per age group, e.g.;
+6. The median follower count per age group, e.g.:
 
 |age_group|median_follower_count|
 | --- | --- |
@@ -311,7 +312,7 @@ The pipeline is built to run a set of SQL queries on each batch of cleaned data,
 |    36-50|                 6000|
 |      50+|                 1000|
 
-7. The total new users per year, e.g.;
+7. The total new users per year, e.g.:
 
 |post_year|number_users_joined|
 | --- | --- |
@@ -319,7 +320,7 @@ The pipeline is built to run a set of SQL queries on each batch of cleaned data,
 |     2016|                424|
 |     2017|                150|
 
-8. The median follower count per joining year, e.g.;
+8. The median follower count per joining year, e.g.:
 
 |post_year|median_follower_count|
 | --- | --- |
