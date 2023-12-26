@@ -55,7 +55,7 @@ For the **Batch Layer**:
 - The data is ingested, in relation to three Kafka topics, via a REST proxy-integrated API connecting the Kafka Client launched on an EC2 instance with an MSK cluster on AWS.
 - I created a sink connector within MSK Connect that directs the incoming data to its target topic folder within an S3 bucket.
 - The data is processed within Databricks using Apache Spark: the data from each topic is read into Spark DataFrames and cleaned before being queried using SQL.
-- I wrote SQL queries to extract a series of comprehensive insights from the so-called historical data of the batch layer: these queries generate daily, precomputed batch views that are written to Parquet tables within Databricks, ready for ingestion to a **Serving Layer**.
+- I wrote SQL queries to extract a series of comprehensive insights from the so-called historical data of the batch layer: these queries generate daily, precomputed batch views that are written to Parquet files within Databricks, ready for ingestion to a **Serving Layer**.
 - The job is orchestrated from the Apache Airflow UI on an AWS MWAA environment using a DAG which currently schedules the batch layer pipeline to be run once daily at midnight.
 
 For the **Speed Layer** (or **Stream Layer**):
@@ -204,66 +204,64 @@ $ python user_posting_emulation.py
 
 ![](readme-assets/giphy-data-being-sent-from-terminal.gif)
 
-- Within Databricks, manually trigger the stream-processing layer by running the code blocks sequentially in `stream_processing_pipeline.ipynb`
-- You can also manually trigger the batch layer processing for testing by running the code blocks in the `batch_processing_pipeline.ipynb` notebook.
-
-### Job orchestration
-The batch layer pipeline can be monitored through the Apache Airflow UI, which can be accessed through the environment on the AWS MWAA console.
+- Within Databricks, manually trigger the stream-processing layer by running the `stream_processing_pipeline.ipynb` notebook
+- You can also manually trigger the batch layer processing for testing by running the `batch_processing_pipeline.ipynb` notebook (or else wait for the run scheduled by the DAG on AWS MWAA)
 
 ### Daily batch views
-The pipeline is built to run a set of SQL queries on each batch of cleaned data, in order to produce the following batch views on the master dataset daily:
+The pipeline is built to run a set of SQL queries on each batch of cleaned data, the outputs of which are stored in Parquet files within Databricks. To read the latest batch layer processing outputs from Parquet, run the `read_latest_batch_views.ipynb` notebook within the Databricks workspace.
+
+As per the job orchestration instructions defined in the DAG, the batch views are currently produced on the master dataset daily. So, each day, the following views on the dataset are computed:
 
 1. The most popular post category per country, e.g.:
 
-|country|category|category_count|
-| --- | --- | --- |
-|         Afghanistan|     education|             9|
-|             Albania|           art|            14|
-|             Algeria|        quotes|            19|
-|      American Samoa|       tattoos|             7|
-|             Andorra|       tattoos|             7|
-|              Angola|     education|             4|
-|            Anguilla|diy-and-crafts|             4|
-|Antarctica (the t...|       tattoos|             4|
-| Antigua and Barbuda|     christmas|             3|
-| Antigua and Barbuda|           art|             3|
-|           Argentina|       tattoos|             9|
-|             Armenia|           art|             4|
-|               Aruba|           art|             7|
-|           Australia|     education|             2|
-|           Australia|     christmas|             2|
-|           Australia|  mens-fashion|             2|
-|             Austria|        travel|             3|
-|             Austria|       tattoos|             3|
-|          Azerbaijan|       finance|             4|
-|             Bahamas|     christmas|             3|
+|country                                            |category      |category_count|
+|---------------------------------------------------|--------------|--------------|
+|Afghanistan                                        |education     |17            |
+|Albania                                            |diy-and-crafts|320           |
+|Algeria                                            |quotes        |31            |
+|American Samoa                                     |education     |16            |
+|Andorra                                            |tattoos       |16            |
+|Angola                                             |diy-and-crafts|95            |
+|Anguilla                                           |home-decor    |158           |
+|Antarctica (the territory South of 60 deg S)       |christmas     |50            |
+|Antigua and Barbuda                                |art           |17            |
+|Argentina                                          |tattoos       |21            |
+|Armenia                                            |diy-and-crafts|187           |
+|Aruba                                              |tattoos       |578           |
+|Australia                                          |mens-fashion  |58            |
+|Austria                                            |travel        |66            |
+|Azerbaijan                                         |event-planning|359           |
+|Bahamas                                            |art           |9             |
+|Bahrain                                            |travel        |6             |
+|Bangladesh                                         |art           |67            |
+|Barbados                                           |travel        |65            |
+|Belarus                                            |travel        |2             |
+|Belgium                                            |christmas     |2             |
+|Belize                                             |diy-and-crafts|4             |
+|Benin                                              |travel        |5             |
+|Bermuda                                            |christmas     |12            |
+|Bhutan                                             |diy-and-crafts|6             |
+|Bolivia                                            |home-decor    |5             |
+|Bosnia and Herzegovina                             |christmas     |2             |
+|Bosnia and Herzegovina                             |education     |2             |
+|Botswana                                           |tattoos       |26            |
+|Bouvet Island (Bouvetoya)                          |tattoos       |5             |
+|Brazil                                             |christmas     |4             |
+|British Indian Ocean Territory (Chagos Archipelago)|mens-fashion  |1             |
+|British Indian Ocean Territory (Chagos Archipelago)|finance       |1             |
+|British Indian Ocean Territory (Chagos Archipelago)|tattoos       |1             |
+|British Virgin Islands                             |christmas     |11            |
 |...|...|...|
 
 2. The most popular post category per year, e.g:
 
-|post_year|      category|category_count|
-|---|---|---|
-|     2018|     christmas|            23|
-|     2018|        travel|            20|
-|     2018|diy-and-crafts|            19|
-|     2018|        quotes|            18|
-|     2018|           art|            18|
-|     2018|     education|            17|
-|     2018|        beauty|            15|
-|     2018|       tattoos|            13|
-|     2018|      vehicles|            13|
-|     2018|  mens-fashion|            12|
-|     2018|event-planning|            11|
-|     2018|       finance|            10|
-|     2018|    home-decor|             6|
-|     2019|           art|            17|
-|     2019|     education|            16|
-|     2019|diy-and-crafts|            16|
-|     2019|     christmas|            15|
-|     2019|    home-decor|            15|
-|     2019|        quotes|            15|
-|     2019|       tattoos|            14|
-|...|...|...|
+|post_year|category      |category_count|
+|---------|--------------|--------------|
+|2018     |beauty        |551           |
+|2019     |diy-and-crafts|445           |
+|2020     |tattoos       |602           |
+|2021     |finance       |458           |
+|2022     |vehicles      |342           |
 
 3. The users with the most followers per country, e.g.:
 
@@ -300,54 +298,57 @@ The pipeline is built to run a set of SQL queries on each batch of cleaned data,
 
 5. The most popular post category per age group, e.g.:
 
-|age_group|    category|category_count|
-| --- | --- | --- |
-|    18-24|     tattoos|            55|
-|    25-35|   christmas|            26|
-|    36-50|      quotes|            20|
-|      50+|mens-fashion|            10|
+|age_group|category    |category_count|
+|---------|------------|--------------|
+|18-24    |mens-fashion|927           |
+|25-35    |beauty      |584           |
+|36-50    |home-decor  |349           |
+|>50      |beauty      |44            |
 
 6. The median follower count per age group, e.g.:
 
 |age_group|median_follower_count|
-| --- | --- |
-|    18-24|                84000|
-|    25-35|                21000|
-|    36-50|                 6000|
-|      50+|                 1000|
+|---------|---------------------|
+|18-24    |92000                |
+|25-35    |43000                |
+|36-50    |9000                 |
+|>50      |5000                 |
 
 7. The total new users per year, e.g.:
 
 |post_year|number_users_joined|
 | --- | --- |
-|     2015|                379|
-|     2016|                424|
-|     2017|                150|
+|     2015|                451|
+|     2016|                505|
+|     2017|                179|
 
-8. The median follower count per joining year, e.g.:
+8. The median follower count by user joining year, e.g.:
 
-|post_year|median_follower_count|
-| --- | --- |
-|     2015|               123000|
-|     2016|                19000|
-|     2017|                 2000|
+|joining_year|median_follower_count|
+|------------|---------------------|
+|2015        |92000                |
+|2016        |21000                |
+|2017        |7000                 |
 
-9. The median follower count per joining year and age group, e.g:
+9. The median follower count per user joining year and age group, e.g:
 
-|age_group|post_year|median_follower_count|
-| --- | --- | --- |
-|    18-24|     2015|               211000|
-|    25-35|     2015|                44000|
-|    36-50|     2015|                10000|
-|      50+|     2015|                 1000|
-|    18-24|     2016|                40000|
-|    25-35|     2016|                19000|
-|    36-50|     2016|                 8000|
-|      50+|     2016|                 1000|
-|    18-24|     2017|                10000|
-|    25-35|     2017|                 1000|
-|    36-50|     2017|                 3000|
-|      50+|     2017|                 1000|
+|age_group|joining_year|median_follower_count|
+|---------|------------|---------------------|
+|18-24    |2015        |211000               |
+|25-35    |2015        |51000                |
+|36-50    |2015        |25000                |
+|>50      |2015        |196                  |
+|18-24    |2016        |4000                 |
+|25-35    |2016        |43000                |
+|36-50    |2016        |9000                 |
+|>50      |2016        |316                  |
+|18-24    |2017        |940                  |
+|25-35    |2017        |79000                |
+|36-50    |2017        |6000                 |
+|>50      |2017        |5000                 |
+
+### Job orchestration
+The batch layer pipeline can be monitored through the Apache Airflow UI, which is accessed via its environment on the AWS MWAA console.
 
 ## [Licence](#licence)
 
