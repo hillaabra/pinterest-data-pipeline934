@@ -347,8 +347,16 @@ As per the job orchestration instructions defined in the DAG, the batch views ar
 |36-50    |2017        |6000                 |
 |>50      |2017        |5000                 |
 
-### Job orchestration
+### Batch Layer job orchestration
 The batch layer pipeline can be monitored through the Apache Airflow UI, which is accessed via its environment on the AWS MWAA console.
+
+### Stream Layer data
+The data passing through the Stream Layer will be appended after cleaning to the desifnated Delta Tables. In the case of this pipeline, the Delta tables are named according to the following convention:
+- `<UserID>_geo_table`
+- `<UserID>_pin_table`
+- `<UserID>_user_table`
+
+Navigate to the `hive_metastore` in the Databricks Catalog to view the schema of the data going into the Delta tables and samples of the data being appended.
 
 ## [Licence](#licence)
 
