@@ -100,7 +100,10 @@ In terms of AWS Cloud infrastucture, the pipeline is made up of the following co
     - `streaming-<UserID>-pin`
     - `streaming-<UserID>-user`
     - `streaming-<UserID>-geo`
-- An MWAA environment and an S3 bucket within it to hold the DAGs for the batch layer job orchestration, with API-token access to allow Databricks to connect to the AWS account
+- An MWAA environment and an S3 bucket designated to it to hold the DAGs for the batch layer job orchestration
+- To create an MWAA-Databricks connection, the user will need to create an API-token access in Databricks, the MWAA-environment-designated S3 bucket will need a `requirements.txt` file uploaded to it in order to have the required Python dependencies uploaded, including `apache-airflow[databricks]`, and the path to the `requirements.txt` file will need to be specified on the MWAA console (follow the instructions provided [here](https://docs.aws.amazon.com/mwaa/latest/userguide/working-dags-dependencies.html))
+- After the `requirements.txt` file is uploaded, the MWAA-Databricks connection can be activated from the Apache Airflow UI with the following settings:
+![screen grab airflow ui databricks-mwaa connection setup](readme-assets/databricks-mwaa-connection-setup.png)
 
 In order to follow principles of least privilege, it would be recommended to:
 - Create an IAM user with full S3 access permissions through which to authorize connection between Databricks and AWS S3
@@ -145,7 +148,7 @@ Follow the instructions in [Usage](#usage) below for how to actually launch the 
 
 ## [File Structure](#file-structure)
 
-The files available in this repository represent those that make up the posting emulation program from my **local machine**, the notebooks that make up the processing layers of the pipeline in **the Databricks Workspace** online, and the `dags/` repository in **the S3 bucket within the MWAA environment on AWS** which monitors and orchestrates the processing of the batch layer data.
+The files available in this repository represent those that make up the posting emulation program from my **local machine**, the notebooks that make up the processing layers of the pipeline in **the Databricks Workspace** online, and the `dags/` repository in **the S3 bucket designated to the MWAA environment on AWS** which monitors and orchestrates the processing of the batch layer data.
 
 Also represented in the sections below are the required file structures of the S3 buckets on the AWS Console and of the EC2 Client Machine.
 
@@ -198,6 +201,7 @@ $ ./kafka-rest-start /home/ec2-user/confluent-7.2.0/etc/kafka-rest/kafka-rest.pr
 $ python user_posting_emulation.py
 ```
 - Press ENTER at any time in the terminal to stop the data posting and bring the user_posting_emulation script to a close:
+
 ![](readme-assets/giphy-data-being-sent-from-terminal.gif)
 
 - Within Databricks, manually trigger the stream-processing layer by running the code blocks sequentially in `stream_processing_pipeline.ipynb`
