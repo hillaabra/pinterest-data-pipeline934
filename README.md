@@ -32,10 +32,10 @@
 
 ## [Project Overview](#project-overview)
 
-To mimic the creation of real-time user data from Pinterest, I wrote a Python program that extracts a set of data at random, every 0-2 seconds, from three tables in an AWS RDS database storing historic Pinterest data. The three datasets are linked by index number: each set of three rows with the same index number represent three collections of data relating to one Pinterest user event:
-- Data relating to the Pinterest post itself
-- Data about the user that interacted with the post
-- Data about the geolocation of the user-post interaction
+To mimic the creation of real-time user data from Pinterest, I wrote a Python program that extracts a set of data at random, every 0-2 seconds, from three tables in an AWS RDS database storing historic Pinterest data. The three datasets are linked by index number: each set of three rows with the same index number represent three collections of data relating to one Pinterest user event, i.e.:
+- the data relating to the Pinterest post itself;
+- the data about the user that interacted with the post;
+- the data about the geolocation of the user-post event.
 
 ### The datasets in their original form in the AWS database:
 
@@ -58,17 +58,15 @@ For the **Batch Layer**:
 - I wrote SQL queries to extract a series of comprehensive insights from the so-called historical data of the batch layer: these queries generate daily, precomputed batch views that are written to Parquet files within Databricks, ready for ingestion to a **Serving Layer**.
 - The job is orchestrated from the Apache Airflow UI on an AWS MWAA environment using a DAG which currently schedules the batch layer pipeline to be run once daily at midnight.
 
-For the **Speed Layer** (or **Stream Layer**):
+For the **Stream Layer** (or **Speed Layer**):
 - The data is ingested, as three streams, using AWS API Gateway into AWS Kinesis.
 - The data is read in near-real-time from Kinesis into DataFrames using Spark Structured Streaming within Databricks.
 - After cleaning, the data is written into Databricks Delta Tables for long-term storage.
 
-(The next stage of development for this pipeline would be to develop the **Server Layer** of the architecture, where the outputs of the batch and stream layers could be merged to allow for both historical and real-time data analysis.)
-
 The same **data cleaning transformations** are performed on the corresponding datasets in the two layers. These include:
-- Reordering, renaming, combining and/or dropping columns for better data comprehension
-- Type-casting columns where necessary
-- Data normalisation, including replacing missing or unmeaningful values with `None`
+- reordering, renaming, combining and/or dropping columns for better data comprehension;
+- type-casting columns where necessary;
+- data normalisation, including replacing missing or unmeaningful values with `None`.
 
 ### [Pipeline Infrastructure](#infrastructure-diagram)
 
@@ -85,7 +83,9 @@ The data emulation and ingestion into the AWS-hosted pipeline requires the follo
 - SQLAlchemy
 - PyYAML
 
-In terms of AWS Cloud infrastucture, the pipeline is made up of the following components:
+**The pipeline administrator will need an AWS account and a Databricks account.**
+
+**In terms of AWS Cloud infrastucture, the pipeline is made up of the following components:**
 - An Apache Kafka MSK cluster
 - An EC2 instance integrated with the MSK cluster (launched before configuring the API)
 - An S3 bucket to store the ingestion of batch layer data
@@ -102,36 +102,35 @@ In terms of AWS Cloud infrastucture, the pipeline is made up of the following co
     - `streaming-<UserID>-geo`
 - An MWAA environment and an S3 bucket designated to it to hold the DAGs for the batch layer job orchestration
 - To create an MWAA-Databricks connection, the user will need to create an API-token access in Databricks, the MWAA-environment-designated S3 bucket will need a `requirements.txt` file uploaded to it in order to have the required Python dependencies uploaded, including `apache-airflow[databricks]`, and the path to the `requirements.txt` file will need to be specified on the MWAA console (follow the instructions provided [here](https://docs.aws.amazon.com/mwaa/latest/userguide/working-dags-dependencies.html))
-- After the `requirements.txt` file is uploaded, the MWAA-Databricks connection can be activated from the Apache Airflow UI with the following settings:
+- After the `requirements.txt` file is uploaded, the MWAA-Databricks connection can be activated from the Apache Airflow UI by selecting the Databricks Connection Type:
+
 ![screen grab airflow ui databricks-mwaa connection setup](readme-assets/databricks-mwaa-connection-setup.png)
 
-In order to follow principles of least privilege, it would be recommended to:
+**In order to follow principles of least privilege, it would be recommended to:**
 - Create an IAM user with full S3 access permissions through which to authorize connection between Databricks and AWS S3
 - Create and assume an IAM role allowing authentication to the MSK cluster through the EC2 client machine
 - Create and assume an IAM role granting the necessary permissions to invoke Kinesis actions - and assign this as the execution role at the corresponding API integration points
 
-The pipeline administrator will also need a Databricks account.
+**Before being able to launch the pipeline,** the user will need to configure the Kafka client by launching their EC2 instance, and connecting to their EC2 instance through the command line. (In my case, this was done using the SSH Client protocol, which required a key-value pair to be saved on my local machine inside a `.pem` file.)
 
-Before being able to launch the pipeline, the user will need to configure the Kafka client by launching their EC2 instance, and connecting to their EC2 instance through the command line. (In my case, this was done using the SSH Client protocol, which required a key-value pair to be saved on my local machine inside a `.pem` file.)
-
-Inside the EC2 client the user will need to:
-- Download Java and Kafka (the same version as is run on the MSK cluster)
-- Install the IAM MSK Authentication package (available on GitHub) within the Kafka `libs` directory
-- Export a path to the `IAM MSK Authentication` package to a `CLASSPATH` variable inside their EC2 instance's `/home/ec2-user/.bashrc` file (to enable the Kafka client to locate and utilise the necessary Amazon MSK IAM libraries when executing commands)
-- Configure the Kafka client to use AWS IAM authentication to the cluster by modifying the `client.properties` file inside the Kafka `bin` directory, configuring it to communicate with the API REST proxy resource created previously
-- Create three Kafka topics on the EC2 Client, e.g.:
+**Inside the EC2 client the user will need to:**
+1. Download Java and Kafka (the same version as is run on the MSK cluster)
+2. Install the IAM MSK Authentication package (available on GitHub) within the Kafka `libs` directory
+3. Export a path to the `IAM MSK Authentication` package to a `CLASSPATH` variable inside their EC2 instance's `/home/ec2-user/.bashrc` file (to enable the Kafka client to locate and utilise the necessary Amazon MSK IAM libraries when executing commands)
+4. Configure the Kafka client to use AWS IAM authentication to the cluster by modifying the `client.properties` file inside the Kafka `bin` directory, configuring it to communicate with the API REST proxy resource created previously
+5. Create three Kafka topics on the EC2 Client, e.g.:
     - `<UserId>.pin` for the Pinterest posts data
     - `<UserId>.geo` for the post geolocation data
     - `<UserId>.user` for the post user data
-- Download an S3 connector that can export data from Kafka topics to S3 (this pipeline used Confluent.io's Amazon S3 Connector)
-- Configure the settings in the `kafka-rest.properties` file inside the newly created connector directory, e.g. `confluent-7.2.0/etc/kafka-rest` to configure the REST proxy to communicate with the desired MSK cluster and to perform IAM authentication
-- Copy the connector over to the dedicated (batch-layer) S3 bucket on AWS
+6. Download an S3 connector that can export data from Kafka topics to S3 (this pipeline used Confluent.io's Amazon S3 Connector)
+7. Configure the settings in the `kafka-rest.properties` file inside the newly created connector directory, e.g. `confluent-7.2.0/etc/kafka-rest` to configure the REST proxy to communicate with the desired MSK cluster and to perform IAM authentication
+8. Copy the connector over to the dedicated (batch-layer) S3 bucket on AWS
 
-Back on the AWS console, the user will need to:
-- Create a custom plug-in on MSK Connect using the S3 connector copied over to the S3 bucket from the EC2 Client
-- Create an S3 sink connector which is configured to ensure that the data going through all the three previously created Kafka topics will get sent to the correct S3 bucket (the connector in this pipeline was configured to be provisioned with a single MCU count per worker and single worker, and was provided access permissions to the IAM role mentioned previously)
-- After making the necessary amendments, upload the DAG script from this GitHub repo to the S3 bucket in the MWAA environment
-- Deploy the API and copy the invoke URL over to the `api_gateway_config.yaml` on their local machine (see file structure below)
+**Back on the AWS console, the user will need to:**
+1. Create a custom plug-in on MSK Connect using the S3 connector copied over to the S3 bucket from the EC2 Client
+2. Create an S3 sink connector which is configured to ensure that the data going through all the three previously created Kafka topics will get sent to the correct S3 bucket (the connector in this pipeline was configured to be provisioned with a single MCU count per worker and single worker, and was provided access permissions to the IAM role mentioned previously)
+3. After making the necessary amendments, upload the DAG script from this GitHub repo to the S3 bucket in the MWAA environment
+4. Deploy the API and copy the invoke URL over to the `api_gateway_config.yaml` on their local machine (see file structure below)
 
 ### Other files and repositories:
 
@@ -144,7 +143,7 @@ Back on the AWS console, the user will need to:
     - *See file structure below, to see where these are saved.*
 - The DAG script stored in the `dags` directory of this repository needs to be uploaded to the `dags` folder within the dedicated bucket in the MWAA environment. (The DAG configuration settings in the script will need to be adjusted as per the pipeline's requirements.)
 
-Follow the instructions in [Usage](#usage) below for how to actually launch the pipeline from here.
+*Follow the instructions in [Usage](#usage) (below) for how to actually launch the pipeline after the infrastructure is in place.*
 
 ## [File Structure](#file-structure)
 
@@ -179,33 +178,35 @@ Refer to the file structure below when following the installation instructions r
 ## [Usage](#usage)
 
 ### Launching the pipeline:
-- Before launching the pipeline:
-    - check consistency in the Kafka topic naming across the Kafka Client on EC2, the local machine emulation script and the Databricks workspace config dictionary;
-    - check consistency in the Kinesis stream naming across AWS Kinesis, the local machine emulation script and the Databricks workspace stream layer pipeline notebook;
-    - make sure the EC2 instance is in launched-mode, and its current state publicDNS has been used in the proxy integration API resource on API Gateway;
-    - make sure the API on API Gateway is deployed and the correct invoke URL has been passed into the `api_gateway_config.yaml` file on your local machine.
-- Connect to the EC2 instance from the terminal using the SSH Client protocol, e.g.:
+> Before launching the pipeline:
+> - check consistency in the Kafka topic naming across the Kafka Client on EC2, the local machine emulation script and the Databricks workspace config dictionary;
+>- check consistency in the Kinesis stream naming across AWS Kinesis, the local machine emulation script and the Databricks workspace stream layer pipeline notebook;
+>- make sure the EC2 instance is in launched-mode, and its current state publicDNS has been used in the proxy integration API resource on API Gateway;
+>- make sure the API on API Gateway is deployed and the correct invoke URL has been passed into the `api_gateway_config.yaml` file on your local machine.
+1. Connect to the EC2 instance from the terminal using the SSH Client protocol, e.g.:
 ```
 $ ssh -i <FilePathToKey-ValuePEM> ec2-user@<PublicIPv4DNS>
 ```
-- Inside the EC2 instance, navigate to the REST proxy directory bin, e.g.:
+2. Inside the EC2 instance, navigate to the REST proxy directory bin, e.g.:
 ```
 $ cd confluent-7.2.0/bin
 ```
-- Start the REST proxy:
+3. Start the REST proxy:
 ```
 $ ./kafka-rest-start /home/ec2-user/confluent-7.2.0/etc/kafka-rest/kafka-rest.properties
 ```
-- When the Kafka REST proxy is fully started up (it will indicate that the server is listening), from a terminal window in the repository on your local machine, start generating and sending data into the pipeline by running:
+**Wait for the Kafka REST proxy to indicate that the server is listening.**
+
+4. Then, from a terminal window in the repository on your local machine, start generating and sending data into the pipeline by running:
 ```
 $ python user_posting_emulation.py
 ```
-- Press ENTER at any time in the terminal to stop the data posting and bring the user_posting_emulation script to a close:
+***Press ENTER at any time in the terminal to stop the data posting and bring the user_posting_emulation script to a close:***
 
 ![](readme-assets/giphy-data-being-sent-from-terminal.gif)
 
-- Within Databricks, manually trigger the stream-processing layer by running the `stream_processing_pipeline.ipynb` notebook
-- You can also manually trigger the batch layer processing for testing by running the `batch_processing_pipeline.ipynb` notebook (or else wait for the run scheduled by the DAG on AWS MWAA)
+5. Within Databricks, manually trigger the stream-processing layer by running the `stream_processing_pipeline.ipynb` notebook
+6. (OPTIONAL:) You can also manually trigger the batch layer processing for testing by running the `batch_processing_pipeline.ipynb` notebook (or else wait for the run scheduled by the DAG on AWS MWAA)
 
 ### Daily batch views
 The pipeline is built to run a set of SQL queries on each batch of cleaned data, the outputs of which are stored in Parquet files within Databricks. To read the latest batch layer processing outputs from Parquet, run the `read_latest_batch_views.ipynb` notebook within the Databricks workspace.
@@ -350,8 +351,8 @@ As per the job orchestration instructions defined in the DAG, the batch views ar
 ### Batch Layer job orchestration
 The batch layer pipeline can be monitored through the Apache Airflow UI, which is accessed via its environment on the AWS MWAA console.
 
-### Stream Layer data
-The data passing through the Stream Layer will be appended after cleaning to the desifnated Delta Tables. In the case of this pipeline, the Delta tables are named according to the following convention:
+### Stream Layer data storage
+The data passing through the Stream Layer will be appended after cleaning to the designated Delta Tables. In the case of this pipeline, the Delta tables are named according to the following convention:
 - `<UserID>_geo_table`
 - `<UserID>_pin_table`
 - `<UserID>_user_table`
