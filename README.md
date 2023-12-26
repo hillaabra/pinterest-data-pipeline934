@@ -186,7 +186,7 @@ Refer to the file structure below when following the installation instructions r
     - make sure the API on API Gateway is deployed and the correct invoke URL has been passed into the `api_gateway_config.yaml` file on your local machine.
 - Connect to the EC2 instance from the terminal using the SSH Client protocol, e.g.:
 ```
-$ ssh -i <filepath to key-value .pem file> ec2-user@<ec2-IP-address>.compute-1.amazonaws.com
+$ ssh -i <FilePathToKey-ValuePEM> ec2-user@<PublicIPv4DNS>
 ```
 - Inside the EC2 instance, navigate to the REST proxy directory bin, e.g.:
 ```
