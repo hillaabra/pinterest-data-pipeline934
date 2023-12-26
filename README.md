@@ -28,6 +28,10 @@
     * [Databricks Workspace](#databricks-workspace)
     * [AWS S3 Buckets](#s3-buckets)
 * [Usage](#usage)
+    * [Launching the pipeline](#launching-the-pipeline)
+    * [Daily batch views](#daily-batch-views)
+    * [Batch Layer job orchestration](#batch-layer-job-orchestration)
+    * [Stream Layer data storage](#stream-layer-data-storage)
 * [Licence](#licence)
 
 ## [Project Overview](#project-overview)
@@ -102,7 +106,7 @@ The data emulation and ingestion into the AWS-hosted pipeline requires the follo
     - `streaming-<UserID>-geo`
 - An MWAA environment and an S3 bucket designated to it to hold the DAGs for the batch layer job orchestration
 - To create an MWAA-Databricks connection, the user will need to create an API-token access in Databricks, the MWAA-environment-designated S3 bucket will need a `requirements.txt` file uploaded to it in order to have the required Python dependencies uploaded, including `apache-airflow[databricks]`, and the path to the `requirements.txt` file will need to be specified on the MWAA console (follow the instructions provided [here](https://docs.aws.amazon.com/mwaa/latest/userguide/working-dags-dependencies.html))
-- After the `requirements.txt` file is uploaded, the MWAA-Databricks connection can be activated from the Apache Airflow UI by selecting the Databricks Connection Type:
+- After the `requirements.txt` file is uploaded, the MWAA-Databricks connection can be activated from the Apache Airflow UI by selecting the Databricks Connection Type. The connection configuration settings should have the following components:
 
 ![screen grab airflow ui databricks-mwaa connection setup](readme-assets/databricks-mwaa-connection-setup.png)
 
@@ -151,25 +155,25 @@ The files available in this repository represent those that make up the posting 
 
 Also represented in the sections below are the required file structures of the S3 buckets on the AWS Console and of the EC2 Client Machine.
 
-### 1. [Local Machine File Structure](#local-machine)
+### [Local Machine File Structure](#local-machine)
 
 The following files make up the posting emulation program run from my local machine - note the files hidden from this GitHub repository:
 
 ![Carbon code block representing local machine file structure](readme-assets/carbon-local-machine.png)
 
-### 2. [EC2 Client Machine File Structure](#ec2-client-machine)
+### [EC2 Client Machine File Structure](#ec2-client-machine)
 
 Refer to the file structure below when following the installation instructions within the EC2 Client Machine:
 
 ![Carbon code block representing EC2 machine file structure](readme-assets/carbon-ec2-machine.png)
 
-### 3. [Databricks Workspace File Structure](#databricks-workspace)
+### [Databricks Workspace File Structure](#databricks-workspace)
 
 Set up your Databricks Workspace exactly as shown (not forgetting the `authentication-credentials.csv` which additionally needs to be stored in the Filestore):
 
 ![A code block representing the file structure of the databricks workspace](readme-assets/carbon-databricks.png)
 
-### 4. [AWS S3 Buckets File Structure](#s3-buckets)
+### [AWS S3 Buckets File Structure](#s3-buckets)
 
 Refer to the file structure below when following the installation instructions relating to AWS S3 and AWS MWAA:
 
@@ -177,7 +181,7 @@ Refer to the file structure below when following the installation instructions r
 
 ## [Usage](#usage)
 
-### Launching the pipeline:
+### [Launching the pipeline](#launching-the-pipeline)
 > Before launching the pipeline:
 > - check consistency in the Kafka topic naming across the Kafka Client on EC2, the local machine emulation script and the Databricks workspace config dictionary;
 >- check consistency in the Kinesis stream naming across AWS Kinesis, the local machine emulation script and the Databricks workspace stream layer pipeline notebook;
@@ -208,7 +212,7 @@ $ python user_posting_emulation.py
 5. Within Databricks, manually trigger the stream-processing layer by running the `stream_processing_pipeline.ipynb` notebook
 6. (OPTIONAL:) You can also manually trigger the batch layer processing for testing by running the `batch_processing_pipeline.ipynb` notebook (or else wait for the run scheduled by the DAG on AWS MWAA)
 
-### Daily batch views
+### [Daily batch views](#daily-batch-views)
 The pipeline is built to run a set of SQL queries on each batch of cleaned data, the outputs of which are stored in Parquet files within Databricks. To read the latest batch layer processing outputs from Parquet, run the `read_latest_batch_views.ipynb` notebook within the Databricks workspace.
 
 As per the job orchestration instructions defined in the DAG, the batch views are currently produced on the master dataset daily. So, each day, the following views on the dataset are computed:
@@ -348,10 +352,10 @@ As per the job orchestration instructions defined in the DAG, the batch views ar
 |36-50    |2017        |6000                 |
 |>50      |2017        |5000                 |
 
-### Batch Layer job orchestration
+### [Batch Layer job orchestration](#batch-layer-job-orchestration)
 The batch layer pipeline can be monitored through the Apache Airflow UI, which is accessed via its environment on the AWS MWAA console.
 
-### Stream Layer data storage
+### [Stream Layer data storage](#stream-layer-data-storage)
 The data passing through the Stream Layer will be appended after cleaning to the designated Delta Tables. In the case of this pipeline, the Delta tables are named according to the following convention:
 - `<UserID>_geo_table`
 - `<UserID>_pin_table`
