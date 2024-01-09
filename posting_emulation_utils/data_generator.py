@@ -3,6 +3,7 @@ import yaml
 
 from sqlalchemy import engine, text
 
+
 class DataGenerator(ABC):
     """
     Abstract Base Class which defines methods used by the BatchLayerConnector
