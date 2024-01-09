@@ -183,7 +183,7 @@ Refer to the file structure below when following the installation instructions r
 
 ### [Launching the pipeline](#launching-the-pipeline)
 > Before launching the pipeline:
-> - check consistency in the Kafka topic naming across the Kafka Client on EC2, the local machine emulation script and the Databricks workspace config dictionary;
+> - check consistency in the Kafka topic naming across the Kafka Client on EC2, the local machine emulation script and the configuration dictionary at the top of the batch layer pipeline notebook;
 >- check consistency in the Kinesis stream naming across AWS Kinesis, the local machine emulation script and the Databricks workspace stream layer pipeline notebook;
 >- make sure the EC2 instance is in launched-mode, and its current state publicDNS has been used in the proxy integration API resource on API Gateway;
 >- make sure the API on API Gateway is deployed and the correct invoke URL has been passed into the `api_gateway_config.yaml` file on your local machine.
