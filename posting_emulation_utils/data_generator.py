@@ -50,11 +50,11 @@ class DataGenerator(ABC):
 
         Returns:
         -------
-        dict: dictionary object containing the contents of the YAML file.
+        dict_from_yaml: dictionary object containing the contents of the YAML file.
         '''
         with open(yaml_pathway, 'r') as stream:
-            dict = yaml.safe_load(stream)
-        return dict
+            dict_from_yaml = yaml.safe_load(stream)
+        return dict_from_yaml
 
     def _get_api_invoke_url(self) -> str:
         '''
@@ -70,7 +70,7 @@ class DataGenerator(ABC):
         invoke_url = dict_from_api_cred["api_gateway_invoke_url"]
         return invoke_url
 
-    def _make_record_dict_json_friendly(self, dict: dict) -> dict:
+    def _make_record_dict_json_friendly(self, dict_retrieved_record: dict) -> dict:
         '''
         Protected; method used internally to cast to string (in ISO format) the datetime-type column value
         in the dictionary storing the data from the record retrieved from the RDS database on AWS. It makes use
@@ -78,16 +78,16 @@ class DataGenerator(ABC):
 
         Argument:
         --------
-        dict: dict
+        dict_retrieved_record: dict
             The dictionary storing the data from the record retrieved from the RDS database on AWS.
 
         Returns:
         -------
-        dict: The dictionary storing the data from the record retrieved from the RDS database on AWS,
+        dict_retrieved_record: The dictionary storing the data from the record retrieved from the RDS database on AWS,
         with all values as numeric or string types, now safe for loading into JSON.
         '''
-        dict[self.datetime_column_name] = dict[self.datetime_column_name].strftime("%Y:%m:%d %H:%M:%S")
-        return dict
+        dict_retrieved_record[self.datetime_column_name] = dict_retrieved_record[self.datetime_column_name].strftime("%Y:%m:%d %H:%M:%S")
+        return dict_retrieved_record
 
     def _extract_random_record_from_aws_db(self, connection: engine.Connection, random_row_number: int) -> engine.CursorResult:
         '''
