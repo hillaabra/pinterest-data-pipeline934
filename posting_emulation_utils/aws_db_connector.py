@@ -6,13 +6,12 @@ class AWSDBConnector:
     """
     Class providing connection to a MySQL database using SQLAlchemy and PyMySQL.
     Used for this pipeline to provide connection to an RDS database on AWS storing
-    Pinterest user event data to be used for emulating real-world data being generated
-    by Pinterest users for ingestion into the pipeline.
+    historic Pinterest user event data.
 
     Parameter:
     --------
     credentials_yaml: str
-        The filepath to the YAML file in the repository containing the required SQLAlchemy engine
+        The filepath to the YAML file containing the required SQLAlchemy engine
         creation settings.
 
     Attributes:
@@ -34,9 +33,7 @@ class AWSDBConnector:
     """
     def __init__(self, credentials_yaml: str) -> None:
         """
-        Method to initialise the object's attributes by accessing the contents of
-        the credentials YAML file at the filepath passed into the contructor as
-        parameter.
+        See help(AWSDBConnector) for an accurate signature.
         """
         with open(credentials_yaml, 'r') as stream:
             dict_db_creds = yaml.safe_load(stream)
@@ -53,7 +50,7 @@ class AWSDBConnector:
 
         Returns:
         -------
-        sqlalchemy.engine: a SQLAlchemy Engine object which can be used for connecting to the remote database.
+        sqlalchemy.engine: a SQLAlchemy Engine object for connection to the remote database.
         """
         engine = sqlalchemy.create_engine(f"mysql+pymysql://{self.USER}:{self.PASSWORD}@{self.HOST}:{self.PORT}/{self.DATABASE}?charset=utf8mb4")
         return engine

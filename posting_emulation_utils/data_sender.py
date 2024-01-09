@@ -7,54 +7,46 @@ import sqlalchemy
 class DataSender(BatchLayerConnector, StreamLayerConnector):
     """
     Class inheriting from BatchLayerConnector and StreamLayerConnector classes.
-    Defines method for providing data to the API requests, to be used in the
-    user_posting_emulation script.
+    Defines method for providing data to the API requests.
 
     Parameters:
     ----------
+
     topic_name: str
-        The name of the Kafka topic to send data through. This should match
-        the naming of the Kafka topic created for this dataset in the Kafka (EC2) Client.
+        The name of the Kafka topic to send data through (consistent with the Kafka (EC2) Client).
 
     stream_name: str
-        The name of the Kinesis data stream to send data to. This should match
-        the naming of the data streams created for this dataset on the AWS Kinesis console.
+        The name of the AWS Kinesis data stream to send data to.
 
     source_table_name: str
-        The name of the table in the pre-existing SQL database of data being extracted from.
+        The name of the table in the remote database of historic data, from which to extract random rows.
 
-     datetime_column_name: str
-        Default value: None. If existing, the name of the column within the specified table
-        that has a datetime type value. (There is only one such column in two out of the
-        three datasets being extracted from.)
+    datetime_column_name: None | str
+        Default value: None. If exists, the name of the column in the source table that has a
+        datetime-type value. (There is only 1 such column, if any.)
 
     Attributes:
     ----------
     topic_name: str
         The name assigned to the Kafka topic for this dataset for data ingestion through the REST
-        proxy resource of the API; assigned by the constructor of the BatchLayerConnector parent class.
+        proxy resource of the API.
 
     stream_name: str
         The name assigned to the Kinesis stream for this dataset for data ingestion through
-        the Kinesis-integrated resource of the API; assigned by the constructor of the
-        StreamLayerConnector parent class.
+        the Kinesis-integrated resource of the API.
 
     api_batch_request_url: str
-        The URL for the API requests to the REST proxy resource; set on initiation by the
-        constructor of the BatchLayerConnector parent class.
+        The URL for the API requests to the REST proxy resource.
 
     api_stream_request_url: str
-        The URL for the API requests to the Kinesis-integrated resource; set on initiation by the
-        constructor of the StreamLayerConnector parent class.
+        The URL for the API requests to the Kinesis-integrated resource.
 
     source_table_name: str
-        The name of the table in the pre-existing SQL database of data being extracted from;
-        assigned by the parent class constructors.
+        The name of the table in the remote database from which the historic data is being retrieved
+        randomly to emulate user data generation.
 
-    datetime_column_name: str
-        Initialised as None by default; if exists, the name of the column within the
-        specified table that has a datetime type value; assigned by the parent class constructors.
-
+    datetime_column_name: None | str
+        If exists, the name of the column in the source table that has a datetime-type value.
     """
     def __init__(self,
                  topic_name: str,
@@ -71,10 +63,7 @@ class DataSender(BatchLayerConnector, StreamLayerConnector):
                                               connection: sqlalchemy.engine.Connection,
                                               random_row_number: int) -> dict:
         """
-        Method that extracts the nth row from the dataset's table in the remote database, where
-        n is the randomly selected number generated in the user_posting_emulation script by the
-        run_post_infinite_data loop function. The method returns the SQL query result as a
-        dictionary object ready for JSON-serialisation.
+        Method that extracts a row from the dataset's source table in the remote database.
 
         Arguments:
         ---------
@@ -83,13 +72,11 @@ class DataSender(BatchLayerConnector, StreamLayerConnector):
             run_infinite_post_loop function for connection to the AWS RDS database.
 
         random_row_number: int
-            An integer value representing the row/index number of the record to be extracted from the
-            RDS database on AWS.
+            An integer value representing the row/index number of the record to be extracted.
 
         Returns:
         -------
-        dict: A dictionary object containing the data retrieved from the remote database ready for placement
-        in the API payload.
+        dict: The data retrieved from the remote database ready for placement in the API payload.
         """
         selected_row = self._extract_random_record_from_aws_db(connection, random_row_number)
         dict_for_json = self._convert_sql_result_to_dict(selected_row)

@@ -8,27 +8,26 @@ class DataGenerator(ABC):
     """
     Abstract Base Class which defines methods used by the BatchLayerConnector
     and StreamLayerConnector child classes and the DataSender grandchild class
-    to extract data from the specified table in a remote SQL database
-    in order to emulate user posting data being generated.
+    to emulate user data generation by extracting data from the specified table
+    in a remote SQL database.
 
     Parameters:
     ----------
     source_table_name: str
-        The name of the table in the pre-existing SQL database of data being extracted from.
+        The name of the table in the remote database of historic data, from which to extract random rows.
 
     datetime_column_name: str
-        Default value: None. If existing, the name of the column within the specified table
-        that has a datetime type value. (There is only one such column in two out of the
-        three datasets being extracted from.)
+        Default value: None. If existing, the name of the column in the source table
+        that has a datetime-type value. (There is only 1 such column, if any.)
 
     Attributes:
     ----------
     source_table_name: str
-        The name of the table in the pre-existing SQL database of data being extracted from.
+        The name of the table in the remote database from which the historic data is being retrieved
+        randomly to emulate user data generation.
 
-    datetime_column_name: str
-        Initialised as None by default; if exists, the name of the column within the specified table
-        that has a datetime type value.
+    datetime_column_name: None | str
+        If exists, the name of the column within the specified table that has a datetime type value.
     """
 
     def __init__(self, source_table_name: str, datetime_column_name: str = None) -> None:
@@ -51,7 +50,7 @@ class DataGenerator(ABC):
 
         Returns:
         -------
-        dict_from_yaml: dictionary object containing the contents of the YAML file.
+        dict: the contents of the YAML file
         '''
         with open(yaml_pathway, 'r') as stream:
             dict_from_yaml = yaml.safe_load(stream)
@@ -59,13 +58,12 @@ class DataGenerator(ABC):
 
     def _get_api_invoke_url(self) -> str:
         '''
-        Protected; method used internally to retrieve the invoke URL of the API deployed on API Gateway
-        for data ingestion into the pipeline from the api_gateway_config.yaml file stored in the
-        posting_emulation_utils directory of the repository.
+        Protected; method used internally to retrieve the invoke URL from "posting_emulation_utils/api_gateway_config.yaml"
+        of the API deployed on API Gateway for data ingestion into the pipeline.
 
         Returns:
         -------
-        str: the invoke URL of the API on API Gateway
+        str: the invoke URL of the API
         '''
         dict_from_api_cred = self._load_dict_from_yaml("posting_emulation_utils/api_gateway_config.yaml")
         invoke_url = dict_from_api_cred["api_gateway_invoke_url"]
@@ -73,19 +71,17 @@ class DataGenerator(ABC):
 
     def _make_record_dict_json_friendly(self, dict_retrieved_record: dict) -> dict:
         '''
-        Protected; method used internally to cast to string (in ISO format) the datetime-type column value
-        in the dictionary storing the data from the record retrieved from the RDS database on AWS. It makes use
-        of the datetime_column_name attribute the instance of the class has been initialised with.
+        Protected; method used internally to cast to string (in ISO format) the datetime-type
+        column value of the dataset retrieved from the remote database.
 
         Argument:
         --------
         dict_retrieved_record: dict
-            The dictionary storing the data from the record retrieved from the RDS database on AWS.
+            The dictionary storing the data from the retrieved record.
 
         Returns:
         -------
-        dict_retrieved_record: The dictionary storing the data from the record retrieved from the RDS database on AWS,
-        with all values as numeric or string types, now safe for loading into JSON.
+        dict: The data from the retrieved record with all values as string or numeric types.
         '''
         dict_retrieved_record[self.datetime_column_name] = dict_retrieved_record[self.datetime_column_name].strftime("%Y:%m:%d %H:%M:%S")
         return dict_retrieved_record
@@ -93,7 +89,7 @@ class DataGenerator(ABC):
     def _extract_random_record_from_aws_db(self, connection: engine.Connection, random_row_number: int) -> engine.CursorResult:
         '''
         Protected; method used internally to extract a random record from the RDS database on AWS,
-        from the dataset specified in the source_table_name object attribute on initialisation.
+        from the dataset specified in the source_table_name attribute.
 
         Arguments:
         ---------
@@ -109,8 +105,7 @@ class DataGenerator(ABC):
         -------
         engine.CursorResult
             A sqlalchemy.engine.CursorResult object pointing at the result of the SQL query performed
-            on the remote database which is returning the nth of the table, where n is the random number
-            passed to this method.
+            on the remote database.
         '''
         query_string = text(f"SELECT * FROM {self.source_table_name} LIMIT {random_row_number}, 1")
         selected_row = connection.execute(query_string)
@@ -119,20 +114,18 @@ class DataGenerator(ABC):
     def _convert_sql_result_to_dict(self, selected_row: engine.CursorResult) -> dict:
         '''
         Protected; method used internally to convert the result of the SQL query performed on the remote
-        database (the single row of data from the specified dataset) into a dictionary object. If the
-        datetime_column_name of the object is not None, the method passes the dictionary to the
-        _make_record_dict_json_friendly() method for the datetime_column_value to be cast to string format.
+        database into a dictionary object. If the dataset has a datetime-type column value, the
+        method invokes the method to cast that value to string.
 
         Argument:
         --------
         selected_row: engine.CursorResult
-            The sqlalchemy.engine.CursorResult object pointing at the result of the SQL query performed
-            on the remote database to extract the row of data from the randomly selected row.
+            The sqlalchemy.engine.CursorResult object pointing at the result of the query retrieving
+            a row of data from the remote database.
 
         Returns:
         -------
-        dict: A dictionary object containing the data retrieved from the remote database ready for placement
-            in the API payload.
+        dict: The data retrieved from the remote database, now compatible with the API payload requirements.
         '''
         for row in selected_row:
             dict_for_json = dict(row._mapping)

@@ -6,23 +6,21 @@ from .data_generator import DataGenerator
 
 class StreamLayerConnector(DataGenerator):
     """
-    Class inheriting from DataGenerator. Defines the attributes and methods for
-    sending data into the Stream Layer of the pipeline through the Kinesis-integrated
-    resource of the API, to be inherited by the child class DataSender.
+    Class extending parent class DataGenerator. Defines the attributes and methods
+    to be inherited by child class DataSender for sending data into the Stream Layer
+    of the pipeline.
 
     Parameters:
     ----------
     stream_name: str
-        The name of the Kinesis data stream to send data to. This should match
-        the naming of the data streams created for this dataset on the AWS Kinesis console.
+        The name of the AWS Kinesis data stream to send data to.
 
     source_table_name: str
-        The name of the table in the pre-existing SQL database of data being extracted from.
+        The name of the table in the remote database of historic data, from which to extract random rows.
 
-    datetime_column_name: str
-        Default value: None. If existing, the name of the column within the specified table
-        that has a datetime type value. (There is only one such column in two out of the
-        three datasets being extracted from.)
+    datetime_column_name: None | str
+        Default value: None. If exists, the name of the column in the source table
+        that has a datetime-type value. (There is only 1 such column, if any.)
 
     Attributes:
     ----------
@@ -31,16 +29,15 @@ class StreamLayerConnector(DataGenerator):
         the Kinesis-integrated resource of the API.
 
     api_stream_request_url: str
-        The URL for the API requests to the Kinesis-integrated resource; set on initiation
-        by invoking the internal method _set_batch_request_url().
+        The URL for the API requests to the Kinesis-integrated resource.
 
     source_table_name: str
-        Inherited from the DataSender parent class; the name of the table in the pre-existing
-        SQL database of data being extracted from.
+        Inherited from DataGenerator parent class; the name of the table in the remote
+        database from which the historic data is being retrieved randomly to emulate user data generation
 
-    datetime_column_name: str
-        Inherited from the DataSender parent class; initialised as None by default; if exists,
-        the name of the column within the specified table that has a datetime type value.
+    datetime_column_name: None | str
+        Inherited from the DataGenerator parent class; if exists, the name of the column
+        in the source table that has a datetime-type value.
     """
     def __init__(self, stream_name: str, source_table_name: str, datetime_column_name: str = None):
         """
@@ -66,17 +63,15 @@ class StreamLayerConnector(DataGenerator):
 
     def post_record_to_stream_layer(self, dict_for_json: dict) -> None:
         """
-        Method used to send a JSON-serialised post request to the API's Kinesis-integrated
-        resource to submit a record of data to the Stream Layer of the pipeline.
-        As per the API method's integration request defined on API Gateway, the payload
-        specifies the Kinesis stream to which the API should deliver the data
-        (which the method sets here using the object's stream_name attribute).
+        Method used to send a POST request to the API's Kinesis-integrated
+        resource to submit a record of data into the Stream Layer of the pipeline.
+        The payload specifies the Kinesis stream to which the API should deliver the data.
 
         Argument:
         --------
         dict_for_json: dict
-            Dictionary object containing the data extracted from the remote database
-            ready for serialisation to JSON.
+            The data extracted from the remote database ready for serialisation to JSON
+            (all values are string or numeric).
         """
         payload = json.dumps({
             "StreamName": "{self.stream_name}",
@@ -88,6 +83,8 @@ class StreamLayerConnector(DataGenerator):
 
         response = requests.put(url=self.api_stream_request_url, headers=headers, data=payload)
         if response.status_code == 200:
-            print(f"Record successfully sent to stream {self.stream_name}. Hit ENTER to stop sending data to the pipeline...")
+            print(f"Record successfully sent to stream {self.stream_name}. \
+                  Hit ENTER to stop sending data to the pipeline...")
         else:
-            print(f"response.status_code for stream {self.stream_name}: {response.status_code}. Hit ENTER to stop sending data to the pipeline...")
+            print(f"response.status_code for stream {self.stream_name}: {response.status_code}. \
+                  Hit ENTER to stop sending data to the pipeline...")

@@ -16,8 +16,7 @@ def run_infinite_post_loop(data_sender: DataSender,
     """
     Function that sends a record at random, every 0-2 seconds, from the source table in the
     remote AWS database to both the Stream Layer and Batch Layer of the pipeline concurrently.
-    The infinite loop is interrupted if an event is detected (the user is instucted to press
-    Enter to cease sending data to the pipeline).
+    The infinite loop is interrupted if a user input event is detected.
 
     Arguments:
     ---------
@@ -26,13 +25,12 @@ def run_infinite_post_loop(data_sender: DataSender,
         from and therefore which topic and stream the data is to be ingested through.
 
     stop_event: Event
-        A multiprocessing.Event object which tells the infinite post loop to stop running if set
-        by the user's input.
+        A multiprocessing.Event object which tells the infinite post loop to stop running if set.
 
     random_number_generator: random.Random
         A random number generator object initialised outside the function definition to ensure
-        parallelism in the time delay counts and index values of the rows of data being extracted
-        and ingested by each parallel infinite_post_loop process (i.e. for each dataset).
+        parallelism in the time delay counts and index values of the rows of data being randomly
+        extracted and posted in the course of each dataset-specific process.
     """
 
     # establishes a SQLAlchemy engine object for connection to the RDS Database on AWS of pre-existing data
