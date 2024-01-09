@@ -92,4 +92,3 @@ class BatchLayerConnector(DataGenerator):
             print(f"Record successfully sent to topic {self.topic_name}. Hit ENTER to stop sending data to the pipeline...")
         else:
             print(f"response.status_code for topic {self.topic_name}: {response.status_code}. Hit ENTER to stop sending data to the pipeline...")
-        # TODO: better error handling

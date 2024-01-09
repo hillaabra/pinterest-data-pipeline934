@@ -19,7 +19,7 @@ class StreamLayerConnector(DataGenerator):
     source_table_name: str
         The name of the table in the pre-existing SQL database of data being extracted from.
 
-     datetime_column_name: str
+    datetime_column_name: str
         Default value: None. If existing, the name of the column within the specified table
         that has a datetime type value. (There is only one such column in two out of the
         three datasets being extracted from.)
@@ -91,4 +91,3 @@ class StreamLayerConnector(DataGenerator):
             print(f"Record successfully sent to stream {self.stream_name}. Hit ENTER to stop sending data to the pipeline...")
         else:
             print(f"response.status_code for stream {self.stream_name}: {response.status_code}. Hit ENTER to stop sending data to the pipeline...")
-        # TODO: better error handling
