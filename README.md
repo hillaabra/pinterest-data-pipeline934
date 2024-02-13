@@ -138,7 +138,7 @@ The data emulation and ingestion into the AWS-hosted pipeline requires the follo
 
 ### Other files and repositories:
 
-- The Databricks workspace will need to contain the files and folders represented in the `databricks-workspace` directory of this GitHub repository.
+- The Databricks workspace will need to contain the files and folders represented in the `databricks-workspace` directory of this GitHub repository. *(GitHub has a hard time rendering Jupyter Notebooks. Use [NBViewer](https://nbviewer.org/github/hillaabra/pinterest-data-pipeline934/tree/main/databricks_workspace/) to review the notebooks online.)*
 - A `.csv` file containing the programmtic access key for authentication to AWS will need to be saved in the following Databricks location: `/FileStore/tables/authentication_credentials.csv`.
 - Other than the files represented in this repository, the following files on my local machine are hidden from the GitHub repository:
     - `api_gateway_config.yaml` to store the invoke url of the API created on API Gateway
@@ -152,6 +152,8 @@ The data emulation and ingestion into the AWS-hosted pipeline requires the follo
 ## [File Structure](#file-structure)
 
 The files available in this repository represent those that make up the posting emulation program from my **local machine**, the notebooks that make up the processing layers of the pipeline in **the Databricks Workspace** online, and the `dags/` repository in **the S3 bucket designated to the MWAA environment on AWS** which monitors and orchestrates the processing of the batch layer data.
+
+*GitHub has a hard time rendering Jupyter Notebooks. Use [NBViewer](https://nbviewer.org/github/hillaabra/pinterest-data-pipeline934/tree/main/databricks_workspace/) to review the notebooks in **the Databricks Workspace**.*
 
 Also represented in the sections below are the required file structures of the S3 buckets on the AWS Console and of the EC2 Client Machine.
 
@@ -168,6 +170,8 @@ Refer to the file structure below when following the installation instructions w
 ![Carbon code block representing EC2 machine file structure](readme-assets/carbon-ec2-machine.png)
 
 ### [Databricks Workspace File Structure](#databricks-workspace)
+
+*Use [NBViewer](https://nbviewer.org/github/hillaabra/pinterest-data-pipeline934/tree/main/databricks_workspace/) to review the notebooks in this repository online.*
 
 Set up your Databricks Workspace exactly as shown (not forgetting the `authentication-credentials.csv` which additionally needs to be stored in the Filestore):
 
